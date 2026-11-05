@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>MY FINANCE</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--ac:37 99 235;--ink:15 23 42;--mu:71 85 105;--a:#fff;--b:#dbeafe;--o1:rgba(96,165,250,.45);--o2:rgba(186,230,253,.7);--g:rgba(255,255,255,.6);--gb:rgba(255,255,255,.9);--sh:0 8px 30px rgba(37,99,235,.12);--f:rgba(255,255,255,.8);--ok:#059669;--bad:#dc2626;--warn:#d97706}
+[data-t=dark]{--ac:34 211 238;--ink:226 240 255;--mu:148 170 199;--a:#050d1f;--b:#0a1a3a;--o1:rgba(14,116,255,.35);--o2:rgba(34,211,238,.16);--g:rgba(15,30,62,.55);--gb:rgba(120,180,255,.16);--sh:0 8px 30px rgba(0,0,0,.4);--f:rgba(8,20,44,.7);--ok:#34d399;--bad:#f87171;--warn:#fbbf24}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:rgb(var(--ink));background:linear-gradient(160deg,var(--a),var(--b)) fixed;min-height:100vh;padding:14px 14px calc(96px + env(safe-area-inset-bottom))}
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(34rem 28rem at 10% 5%,var(--o1),transparent 60%),radial-gradient(30rem 26rem at 95% 90%,var(--o2),transparent 60%)}
+.g{background:var(--g);border:1px solid var(--gb);box-shadow:var(--sh);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);border-radius:22px;padding:16px;margin-bottom:12px}
+h1{font-size:13px;margin:0 0 4px;font-weight:600;color:rgb(var(--mu))}h2{font-size:17px;margin:4px 2px 12px}
+.big{font-size:30px;font-weight:800;letter-spacing:-.5px}.mu{color:rgb(var(--mu));font-size:13px}
+.row{display:flex;align-items:center;gap:10px}.sp{justify-content:space-between}.c2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.inc{color:var(--ok)}.exp{color:var(--bad)}
+.item{padding:11px 0;border-top:1px solid var(--gb);cursor:pointer}.item:first-child{border:0}
+.ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:rgb(var(--ac)/.14);flex:none;font-weight:700;color:rgb(var(--ac))}
+.grow{flex:1;min-width:0}.grow b,.grow span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{height:9px;border-radius:9px;background:rgb(var(--ac)/.15);overflow:hidden;margin:8px 0 4px}.bar i{display:block;height:100%;border-radius:9px;background:rgb(var(--ac));transition:width .6s}
+.donut{width:120px;height:120px;border-radius:50%;display:grid;place-items:center;flex:none}.donut div{width:78px;height:78px;border-radius:50%;background:var(--a);display:grid;place-items:center;font-size:11px;text-align:center;color:rgb(var(--mu))}
+[data-t=dark] .donut div{background:#08142e}
+input,select,button{font:inherit;color:inherit}
+.in{width:100%;padding:12px 14px;border-radius:14px;border:1px solid rgb(var(--ac)/.25);background:var(--f);outline:0;margin:4px 0 10px}.in:focus{border-color:rgb(var(--ac));box-shadow:0 0 0 3px rgb(var(--ac)/.25)}
+label{font-size:13px;font-weight:600}
+.btn{width:100%;padding:13px;border:0;border-radius:14px;background:rgb(var(--ac));color:#fff;font-weight:700;cursor:pointer;margin-top:4px}[data-t=dark] .btn{color:#04111f}
+.btn.s{background:rgb(var(--ac)/.14);color:rgb(var(--ac))}.btn.d{background:rgba(220,38,38,.14);color:var(--bad)}
+.chips{display:flex;gap:8px;margin-bottom:10px;overflow:auto}.chip{padding:8px 14px;border-radius:99px;background:var(--g);border:1px solid var(--gb);white-space:nowrap;cursor:pointer}.chip.on{background:rgb(var(--ac));color:#fff;border-color:transparent}[data-t=dark] .chip.on{color:#04111f}
+nav{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));display:flex;justify-content:space-around;padding:8px;border-radius:24px;z-index:5}
+nav button{background:0;border:0;padding:6px 8px;border-radius:14px;font-size:11px;color:rgb(var(--mu));display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}nav button.on{color:rgb(var(--ac));background:rgb(var(--ac)/.12)}nav svg{width:22px;height:22px}
+.fab{position:fixed;right:20px;bottom:calc(92px + env(safe-area-inset-bottom));width:54px;height:54px;border-radius:50%;border:0;background:rgb(var(--ac));color:#fff;font-size:30px;box-shadow:0 8px 24px rgb(var(--ac)/.45);z-index:6;cursor:pointer}[data-t=dark] .fab{color:#04111f}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:20;display:flex;align-items:flex-end}
+.sheet{width:100%;max-height:90vh;overflow:auto;border-radius:26px 26px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom));background:var(--a);border:1px solid var(--gb)}[data-t=dark] .sheet{background:#0a1a3a}
+.tg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}.tg button{padding:10px;border-radius:12px;border:1px solid var(--gb);background:var(--g);cursor:pointer;font-weight:600}.tg button.on{background:rgb(var(--ac));color:#fff}[data-t=dark] .tg button.on{color:#04111f}
+.empty{text-align:center;padding:26px 10px;color:rgb(var(--mu))}
+#toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);padding:10px 16px;border-radius:14px;background:#111c;color:#fff;z-index:30;display:none}
+:focus-visible{outline:2px solid rgb(var(--ac));outline-offset:2px}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div><div id="toast" role="status"></div>
+<button class="fab" id="fab" aria-label="Tranzaksiya qo'shish">+</button>
+<nav class="g" id="nav"></nav>
+<script>
+const tg=window.Telegram&&Telegram.WebApp;if(tg){tg.ready();tg.expand()}
+const CS=tg&&tg.initData&&tg.CloudStorage?tg.CloudStorage:null;
+const kv={get:k=>new Promise(r=>CS?CS.getItem(k,(e,v)=>r(e?null:v||null)):r(localStorage.getItem(k))),
+ set:(k,v)=>new Promise(r=>CS?CS.setItem(k,v,e=>r(!e)):(localStorage.setItem(k,v),r(true))),
+ del:ks=>new Promise(r=>{if(!ks.length)return r();CS?CS.removeItems(ks,()=>r()):(ks.forEach(k=>localStorage.removeItem(k)),r())})};
+const CH=1000;let S,prevN=0,saving=Promise.resolve();
+const EXP=["Oziq-ovqat","Transport","Xarid","Ta'lim","Ko'ngilochar","Sog'liq","Kommunal","Oila","Boshqa"];
+const INC=["Maosh","Biznes","Sovg'a","Frilans","Boshqa daromad"];
+const COL=["#2563eb","#06b6d4","#8b5cf6","#f59e0b","#ef4444","#10b981","#ec4899","#64748b","#84cc16"];
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const fmt=n=>Math.round(n).toLocaleString("ru-RU").replace(/\u00a0|\u202f/g," ")+" so'm";
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const $=s=>document.querySelector(s);
+const toast=m=>{const t=$("#toast");t.textContent=m;t.style.display="block";clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display="none",2400)};
+const ask=m=>new Promise(r=>tg&&tg.showConfirm?tg.showConfirm(m,r):r(confirm(m)));
+async function load(){let raw="";const n=+(await kv.get("mf_n")||0);prevN=n;for(let i=0;i<n;i++)raw+=await kv.get("mf_"+i)||"";
+ try{S=JSON.parse(raw)}catch{S=null}
+ if(!S)S={w:[{id:uid(),n:"Naqd pul"},{id:uid(),n:"Bank kartasi"}],t:[],g:[],b:{},th:null,created:new Date().toISOString()}}
+function save(){saving=saving.then(async()=>{const raw=JSON.stringify(S),n=Math.ceil(raw.length/CH);let ok=true;
+ for(let i=0;i<n;i++)ok=(await kv.set("mf_"+i,raw.slice(i*CH,(i+1)*CH)))&&ok;
+ ok=(await kv.set("mf_n",String(n)))&&ok;
+ if(prevN>n)await kv.del(Array.from({length:prevN-n},(_,i)=>"mf_"+(n+i)));prevN=n;
+ if(!ok)toast("Saqlashda xatolik. Qayta urinib ko'ring.")})}
+function theme(){document.documentElement.dataset.t=S.th||(tg&&tg.colorScheme)||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light")}
+const mkey=d=>d.slice(0,7),cm=()=>mkey(today());
+const sum=(a,f)=>a.reduce((s,x)=>s+(f?f(x):x.amt),0);
+const saved=()=>sum(S.g,g=>g.saved);
+function stats(){const m=S.t.filter(x=>mkey(x.d)===cm());const inc=sum(m.filter(x=>x.type=="in")),exp=sum(m.filter(x=>x.type=="out"));
+ const allI=sum(S.t.filter(x=>x.type=="in")),allE=sum(S.t.filter(x=>x.type=="out"));return{inc,exp,m,bal:allI-allE-saved()}}
+const spentBy=c=>sum(S.t.filter(x=>x.type=="out"&&x.cat==c&&mkey(x.d)==cm()));
+const wal=id=>(S.w.find(w=>w.id==id)||{n:"—"}).n;
+const wbal=id=>sum(S.t.filter(x=>x.w==id),x=>x.type=="in"?x.amt:-x.amt);
+const I={home:'<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',pig:'<path d="M19 11a7 7 0 0 0-7-6H9a5 5 0 0 0-4 8v4h3v-2h6v2h3v-4l2-1v-3zM15 10h.01"/>',tgt:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',more:'<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>'};
+const TABS=[["home","Bosh sahifa"],["list","Tarix"],["pig","Jamg'arma"],["tgt","Byudjet"],["more","Yana"]];
+let tab="home",flt="all",q="";
+function nav(){$("#nav").innerHTML=TABS.map(([k,l])=>`<button data-tab="${k}" class="${tab==k?"on":""}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>${l}</button>`).join("")}
+const txRow=x=>`<div class="item row" data-edit="${x.id}"><div class="ic">${esc((x.cat||"?")[0])}</div><div class="grow"><b>${esc(x.cat)}</b><span class="mu">${esc(x.note||wal(x.w))} · ${x.d}</span></div><b class="${x.type=="in"?"inc":"exp"}">${x.type=="in"?"+":"−"}${fmt(x.amt)}</b></div>`;
+function vHome(){const s=stats(),cats={};s.m.filter(x=>x.type=="out").forEach(x=>cats[x.cat]=(cats[x.cat]||0)+x.amt);
+ const ce=Object.entries(cats).sort((a,b)=>b[1]-a[1]);let a=0;const grad=ce.map(([,v],i)=>{const p=v/s.exp*100,r=`${COL[i%9]} ${a}% ${a+p}%`;a+=p;return r}).join(",");
+ const warn=Object.entries(S.b).filter(([c,l])=>spentBy(c)>=l*.8).map(([c,l])=>`<div class="mu" style="color:${spentBy(c)>=l?"var(--bad)":"var(--warn)"}">⚠ ${esc(c)}: byudjetning ${Math.round(spentBy(c)/l*100)}% ishlatildi</div>`).join("");
+ return`<div class="g"><h1>Umumiy balans</h1><div class="big">${fmt(s.bal)}</div><div class="mu">Jamg'armada: ${fmt(saved())}</div></div>
+ <div class="c2"><div class="g"><h1>Daromad (shu oy)</h1><b class="inc">${fmt(s.inc)}</b></div><div class="g"><h1>Xarajat (shu oy)</h1><b class="exp">${fmt(s.exp)}</b></div></div>
+ ${warn?`<div class="g">${warn}</div>`:""}
+ <div class="g"><h2>Xarajatlar tarkibi</h2>${ce.length?`<div class="row"><div class="donut" style="background:conic-gradient(${grad})"><div>${ce.length} ta<br>kategoriya</div></div><div class="grow">${ce.slice(0,5).map(([c,v],i)=>`<div class="row sp mu"><span><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${COL[i%9]}"></i> ${esc(c)}</span><span>${Math.round(v/s.exp*100)}%</span></div>`).join("")}</div></div>`:'<div class="empty">Shu oy xarajat yo\'q.</div>'}</div>
+ <div class="g"><h2>So'nggi tranzaksiyalar</h2>${S.t.length?[...S.t].sort((a,b)=>b.d.localeCompare(a.d)||b.ts-a.ts).slice(0,5).map(txRow).join(""):'<div class="empty">Hali tranzaksiya yo\'q.<br>«+» tugmasi bilan birinchisini qo\'shing.</div>'}</div>`}
+function vList(){let l=[...S.t].sort((a,b)=>b.d.localeCompare(a.d)||b.ts-a.ts);if(flt!="all")l=l.filter(x=>x.type==flt);
+ if(q)l=l.filter(x=>(x.cat+" "+x.note).toLowerCase().includes(q.toLowerCase()));
+ return`<h2>Tranzaksiyalar tarixi</h2><input class="in" id="q" placeholder="Qidirish…" value="${esc(q)}"><div class="chips">${[["all","Hammasi"],["in","Daromad"],["out","Xarajat"]].map(([k,v])=>`<div class="chip ${flt==k?"on":""}" data-f="${k}">${v}</div>`).join("")}</div>
+ <div class="g">${l.length?l.map(txRow).join(""):'<div class="empty">Hech narsa topilmadi.</div>'}</div>`}
+function vPig(){return`<h2>Jamg'arma maqsadlari</h2>${S.g.map(g=>{const p=Math.min(100,g.saved/g.target*100);return`<div class="g" data-goal="${g.id}" style="cursor:pointer"><div class="row sp"><b>${esc(g.name)}</b><span class="mu">${Math.round(p)}%</span></div><div class="bar"><i style="width:${p}%"></i></div><div class="row sp mu"><span>${fmt(g.saved)} / ${fmt(g.target)}</span><span>${g.saved>=g.target?"✓ Bajarildi":"Qoldi: "+fmt(g.target-g.saved)}</span></div>${g.date?`<div class="mu">Muddat: ${g.date}</div>`:""}</div>`}).join("")||'<div class="g empty">Maqsad yo\'q. Masalan: «MacBook sotib olish».</div>'}<button class="btn" data-act="newgoal">+ Yangi maqsad</button>`}
+function vBud(){return`<h2>Oylik byudjet</h2><div class="g">${EXP.map(c=>{const l=S.b[c],sp=spentBy(c),p=l?sp/l*100:0,col=p>=100?"var(--bad)":p>=80?"var(--warn)":"rgb(var(--ac))";
+ return`<div class="item" data-bud="${esc(c)}"><div class="row sp"><b>${esc(c)}</b><span class="mu">${l?fmt(l):"Belgilanmagan"}</span></div>${l?`<div class="bar"><i style="width:${Math.min(100,p)}%;background:${col}"></i></div><div class="row sp mu"><span>Sarflandi: ${fmt(sp)}</span><span style="color:${col}">${p>=100?"Limit oshdi":"Qoldi: "+fmt(l-sp)}</span></div>`:`<div class="mu">Shu oy sarflandi: ${fmt(sp)}</div>`}</div>`}).join("")}</div><div class="mu">Kategoriyani bosib limit belgilang.</div>`}
+function vMore(){return`<h2>Hamyonlar</h2><div class="g">${S.w.map(w=>`<div class="item row sp" data-wal="${w.id}"><b>${esc(w.n)}</b><span>${fmt(wbal(w.id))}</span></div>`).join("")}<button class="btn s" data-act="newwal">+ Hamyon qo'shish</button></div>
+ <h2>Sozlamalar</h2><div class="g"><button class="btn s" data-act="theme">Mavzuni almashtirish (yorug' / qorong'i)</button><div class="mu" style="margin-top:12px">Hisob yaratilgan: ${new Date(S.created).toLocaleDateString("uz-UZ")}<br>Ma'lumotlar ${CS?"Telegram bulutida (barcha qurilmalaringizda)":"shu brauzerda (sinov rejimi — Telegram ichida bulutga yoziladi)"} saqlanadi.</div></div>
+ <div class="g"><button class="btn d" data-act="reset">Barcha ma'lumotlarni o'chirish</button></div>`}
+const V={home:vHome,list:vList,pig:vPig,tgt:vBud,more:vMore};
+function render(){nav();$("#app").innerHTML=V[tab]();const qi=$("#q");if(qi)qi.oninput=e=>{q=e.target.value;const p=e.target.selectionStart;render();const n=$("#q");n.focus();n.setSelectionRange(p,p)}}
+function sheet(h){close();const o=document.createElement("div");o.className="ov";o.innerHTML=`<div class="sheet">${h}</div>`;o.onclick=e=>{if(e.target==o)close()};document.body.append(o)}
+function close(){document.querySelectorAll(".ov").forEach(o=>o.remove())}
+const opt=(a,v)=>a.map(x=>`<option ${x==v?"selected":""}>${esc(x)}</option>`).join("");
+function txForm(id){const x=S.t.find(t=>t.id==id)||{type:"out",d:today(),w:S.w[0].id,cat:"",amt:"",note:""};let ty=x.type;
+ const draw=()=>{const cats=ty=="in"?INC:EXP;$("#tc").innerHTML=opt(cats,x.cat&&cats.includes(x.cat)?x.cat:cats[0])};
+ sheet(`<h2>${id?"Tahrirlash":"Yangi tranzaksiya"}</h2><div class="tg"><button data-ty="out" class="${ty=="out"?"on":""}">Xarajat</button><button data-ty="in" class="${ty=="in"?"on":""}">Daromad</button></div>
+ <label>Summa (so'm)</label><input class="in" id="ta" inputmode="numeric" placeholder="0" value="${x.amt}"><label>Kategoriya</label><select class="in" id="tc"></select>
+ <label>Hamyon</label><select class="in" id="tw">${S.w.map(w=>`<option value="${w.id}" ${w.id==x.w?"selected":""}>${esc(w.n)}</option>`).join("")}</select>
+ <label>Sana</label><input class="in" id="td" type="date" value="${x.d}"><label>Izoh</label><input class="in" id="tn" maxlength="200" value="${esc(x.note)}">
+ <button class="btn" id="ts">Saqlash</button>${id?'<button class="btn d" id="tx">O\'chirish</button>':""}`);draw();
+ document.querySelectorAll("[data-ty]").forEach(b=>b.onclick=()=>{ty=b.dataset.ty;document.querySelectorAll("[data-ty]").forEach(z=>z.classList.toggle("on",z==b));draw()});
+ $("#ts").onclick=()=>{const amt=+$("#ta").value.replace(/\s/g,"").replace(",","."),d=$("#td").value;if(!(amt>0))return toast("Summani to'g'ri kiriting.");if(!d)return toast("Sanani tanlang.");
+  const r={id:id||uid(),type:ty,amt,cat:$("#tc").value,w:$("#tw").value,d,note:$("#tn").value.trim(),ts:x.ts||Date.now()};
+  if(id)S.t=S.t.map(t=>t.id==id?r:t);else S.t.push(r);save();close();render();toast("Saqlandi")};
+ if(id)$("#tx").onclick=async()=>{if(await ask("Bu yozuvni o'chirasizmi?")){S.t=S.t.filter(t=>t.id!=id);save();close();render()}}}
+function goalForm(){sheet(`<h2>Yangi maqsad</h2><label>Nomi</label><input class="in" id="gn" maxlength="60" placeholder="MacBook sotib olish"><label>Maqsad summasi (so'm)</label><input class="in" id="gt" inputmode="numeric"><label>Muddat (ixtiyoriy)</label><input class="in" id="gd" type="date"><button class="btn" id="gs">Yaratish</button>`);
+ $("#gs").onclick=()=>{const n=$("#gn").value.trim(),t=+$("#gt").value.replace(/\s/g,"");if(!n)return toast("Nomini kiriting.");if(!(t>0))return toast("Summani kiriting.");S.g.push({id:uid(),name:n,target:t,saved:0,date:$("#gd").value});save();close();render()}}
+function goalMoney(id){const g=S.g.find(x=>x.id==id);sheet(`<h2>${esc(g.name)}</h2><div class="mu">Jamg'arilgan: ${fmt(g.saved)} · Qoldi: ${fmt(Math.max(0,g.target-g.saved))}</div><label style="display:block;margin-top:12px">Summa (so'm)</label><input class="in" id="ga" inputmode="numeric"><button class="btn" id="gi">Qo'shish</button><button class="btn s" id="go">Yechib olish</button><button class="btn d" id="gx">Maqsadni o'chirish</button>`);
+ const get=()=>+$("#ga").value.replace(/\s/g,"");
+ $("#gi").onclick=()=>{const a=get();if(!(a>0))return toast("Summani kiriting.");if(a>stats().bal)return toast("Balansda mablag' yetarli emas.");g.saved+=a;save();close();render()};
+ $("#go").onclick=()=>{const a=get();if(!(a>0))return toast("Summani kiriting.");if(a>g.saved)return toast("Maqsadda bunchalik mablag' yo'q.");g.saved-=a;save();close();render()};
+ $("#gx").onclick=async()=>{if(await ask("Maqsad o'chiriladi, jamg'arilgan summa balansga qaytadi. Davom etasizmi?")){S.g=S.g.filter(x=>x.id!=id);save();close();render()}}}
+function budForm(c){sheet(`<h2>${esc(c)} — oylik limit</h2><label>Limit (so'm)</label><input class="in" id="bl" inputmode="numeric" value="${S.b[c]||""}"><button class="btn" id="bs">Saqlash</button>${S.b[c]?'<button class="btn d" id="bd">Limitni olib tashlash</button>':""}`);
+ $("#bs").onclick=()=>{const v=+$("#bl").value.replace(/\s/g,"");if(!(v>0))return toast("Limitni kiriting.");S.b[c]=v;save();close();render()};
+ if(S.b[c])$("#bd").onclick=()=>{delete S.b[c];save();close();render()}}
+function walForm(id){const w=S.w.find(x=>x.id==id);sheet(`<h2>${w?"Hamyonni tahrirlash":"Yangi hamyon"}</h2><label>Nomi</label><input class="in" id="wn" maxlength="40" value="${esc(w?w.n:"")}"><button class="btn" id="ws">Saqlash</button>${w&&S.w.length>1?'<button class="btn d" id="wd">O\'chirish</button>':""}`);
+ $("#ws").onclick=()=>{const n=$("#wn").value.trim();if(!n)return toast("Nomini kiriting.");if(w)w.n=n;else S.w.push({id:uid(),n});save();close();render()};
+ if(w&&S.w.length>1)$("#wd").onclick=()=>{if(S.t.some(t=>t.w==id))return toast("Bu hamyonda tranzaksiyalar bor — o'chirib bo'lmaydi.");S.w=S.w.filter(x=>x.id!=id);save();close();render()}}
+document.addEventListener("click",async e=>{const t=e.target.closest("[data-tab],[data-f],[data-edit],[data-goal],[data-bud],[data-wal],[data-act]");if(!t)return;const d=t.dataset;
+ if(d.tab){tab=d.tab;render();scrollTo(0,0)}else if(d.f){flt=d.f;render()}else if(d.edit)txForm(d.edit);else if(d.goal)goalMoney(d.goal);else if(d.bud)budForm(d.bud);else if(d.wal)walForm(d.wal);
+ else if(d.act=="newgoal")goalForm();else if(d.act=="newwal")walForm();
+ else if(d.act=="theme"){S.th=document.documentElement.dataset.t=="dark"?"light":"dark";save();theme()}
+ else if(d.act=="reset"&&await ask("BARCHA ma'lumotlar o'chiriladi. Qaytarib bo'lmaydi. Davom etasizmi?")){S=null;await kv.del(Array.from({length:prevN},(_,i)=>"mf_"+i).concat("mf_n"));await load();theme();render()}});
+$("#fab").onclick=()=>txForm();
+load().then(()=>{theme();render()});
+</script>
+</body>
+</html>
