@@ -96,12 +96,27 @@ nav button.on::after{content:"";width:16px;height:3px;border-radius:3px;backgrou
 .donut{box-shadow:0 14px 30px -12px rgb(var(--ac)/.55)}.fab{box-shadow:0 14px 30px -8px rgb(var(--ac)/.75),0 0 0 7px rgb(var(--ac)/.12)}
 .empty{line-height:1.6}
 #toast{border-radius:99px;padding:11px 18px;box-shadow:0 14px 30px rgba(0,0,0,.3);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);animation:tin .3s both}@keyframes tin{from{opacity:0;transform:translate(-50%,-14px)}}
+/* ===== v5: tuzatishlar + dizayn ===== */
+body{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
+body::after{content:"";position:fixed;left:0;right:0;bottom:0;height:130px;background:linear-gradient(transparent,color-mix(in srgb,var(--b) 92%,transparent));pointer-events:none;z-index:4}
+.fab{display:grid;place-items:center;width:52px;height:52px;right:18px;bottom:calc(102px + env(safe-area-inset-bottom));transition:transform .25s cubic-bezier(.2,.8,.2,1),opacity .25s}
+.fab.hide{transform:translateY(130px) scale(.6);opacity:0;pointer-events:none}
+nav{background:color-mix(in srgb,var(--a) 80%,transparent);-webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-filter:blur(26px) saturate(180%)}
+.c2{grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:12px}.c2>*{min-width:0}.c2 .g{margin:0;padding:14px}.c2 label{display:block;margin:0 0 0 4px}
+input[type=date].in{-webkit-appearance:none;appearance:none;display:block;width:100%;min-width:0;max-width:100%;height:48px;padding:0 12px;font-size:14px;text-align:left}
+input[type=date].in::-webkit-date-and-time-value{text-align:left;min-height:1.2em}
+.sv{display:block;font-size:19px;font-weight:800;letter-spacing:-.4px;margin-top:2px}.c2 h1{font-size:12px}
+h2{display:flex;align-items:center;gap:9px}h2::before{content:"";width:4px;height:17px;border-radius:4px;background:linear-gradient(var(--ac2),rgb(var(--ac)))}.sheet h2::before{display:none}
+.chips{scrollbar-width:none;padding:2px}.chips::-webkit-scrollbar{display:none}.chip{font-weight:700;font-size:14px}
+.chart{background:repeating-linear-gradient(to top,transparent 0 31px,rgb(var(--mu)/.14) 31px 32px)}
+.hero .big{font-size:clamp(30px,10.5vw,42px)}.pill>div{min-width:0}.pill b{overflow:hidden;text-overflow:ellipsis}
+.item>b{flex:none;white-space:nowrap}.btn{min-height:48px}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 <div id="app"></div><div id="toast" role="status"></div>
-<button class="fab" id="fab" aria-label="Tranzaksiya qo'shish">+</button>
+<button class="fab" id="fab" aria-label="Tranzaksiya qo'shish"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
 <nav class="g" id="nav"></nav>
 <script>
 const tg=window.Telegram&&Telegram.WebApp;if(tg){tg.ready();tg.expand()}
@@ -188,8 +203,8 @@ function vRep(){const[f,t]=range(),L=S.t.filter(x=>x.d>=f&&x.d<=t),Ii=L.filter(x
  ${per=="month"?mnav():""}${per=="custom"?`<div class="c2"><div><label>Dan</label><input class="in" id="cf" type="date" value="${cf}"></div><div><label>Gacha</label><input class="in" id="ct" type="date" value="${ct}"></div></div>`:`<div class="mu" style="margin:-2px 2px 10px">${f} — ${t}${per=="week"?" (oxirgi 7 kun)":""}</div>`}
  <div class="g"><div class="row sp"><span class="mu">Daromad</span><b class="inc">${fmt(inc)}</b></div><div class="row sp" style="margin:6px 0"><span class="mu">Xarajat</span><b class="exp">${fmt(exp)}</b></div><div class="row sp" style="border-top:1px solid var(--gb);padding-top:8px"><span class="mu">Sof o'zgarish</span><b class="${net<0?"exp":"inc"}">${net<0?"−":"+"}${fmt(Math.abs(net))}</b></div></div>
  ${per=="month"?cmpCard(inc,exp,E):""}
- ${L.length?`<div class="g"><h2>Daromad va xarajat</h2><div style="display:flex;align-items:flex-end;gap:${vals.length>20?2:5}px;height:130px">${vals.map(v=>`<div style="flex:1;height:100%;display:flex;align-items:flex-end;gap:1px"><i class="gr" style="flex:1;${h(v.i)};background:var(--ok);border-radius:3px 3px 0 0"></i><i class="gr" style="flex:1;${h(v.e)};background:var(--bad);border-radius:3px 3px 0 0"></i></div>`).join("")}</div><div style="display:flex;gap:${vals.length>20?2:5}px;margin-top:4px">${vals.map((v,i)=>`<div class="mu" style="flex:1;text-align:center;font-size:10px;overflow:hidden">${i%step==0?v.l:""}</div>`).join("")}</div><div class="row mu" style="gap:14px;margin-top:8px"><span><i style="display:inline-block;width:9px;height:9px;border-radius:3px;background:var(--ok)"></i> Daromad</span><span><i style="display:inline-block;width:9px;height:9px;border-radius:3px;background:var(--bad)"></i> Xarajat</span></div></div>
- <div class="c2"><div class="g"><h1>Kunlik o'rtacha xarajat</h1><b>${fmt(exp/days)}</b></div><div class="g"><h1>Jamg'arish darajasi</h1><b>${inc>0?Math.round(net/inc*100)+"%":"—"}</b></div></div>
+ ${L.length?`<div class="g"><h2>Daromad va xarajat</h2><div class="chart" style="display:flex;align-items:flex-end;gap:${vals.length>20?2:5}px;height:130px">${vals.map(v=>`<div style="flex:1;height:100%;display:flex;align-items:flex-end;gap:1px"><i class="gr" style="flex:1;${h(v.i)};background:var(--ok);border-radius:3px 3px 0 0"></i><i class="gr" style="flex:1;${h(v.e)};background:var(--bad);border-radius:3px 3px 0 0"></i></div>`).join("")}</div><div style="display:flex;gap:${vals.length>20?2:5}px;margin-top:4px">${vals.map((v,i)=>`<div class="mu" style="flex:1;text-align:center;font-size:10px;overflow:hidden">${i%step==0?v.l:""}</div>`).join("")}</div><div class="row mu" style="gap:14px;margin-top:8px"><span><i style="display:inline-block;width:9px;height:9px;border-radius:3px;background:var(--ok)"></i> Daromad</span><span><i style="display:inline-block;width:9px;height:9px;border-radius:3px;background:var(--bad)"></i> Xarajat</span></div></div>
+ <div class="c2"><div class="g"><h1>Kunlik o'rtacha xarajat</h1><b class="sv">${fmt(exp/days)}</b></div><div class="g"><h1>Jamg'arish darajasi</h1><b class="sv">${inc>0?Math.round(net/inc*100)+"%":"—"}</b></div></div>
  ${ce.length?`<div class="g"><h2>Xarajatlar tarkibi</h2>${pie(ce,exp)}<div style="margin-top:10px">${catBars(ce,exp,"var(--bad)")}</div></div>`:""}
  ${ci.length?`<div class="g"><h2>Daromad manbalari</h2>${catBars(ci,inc,"var(--ok)")}</div>`:""}
  <div class="g"><h2>Eksport</h2><button class="btn" data-act="exp">Excel uchun yuklab olish (CSV)</button><button class="btn s" data-act="cp">Jadvalni nusxalash</button><div class="mu" style="margin-top:8px">Telegram ichida fayl yuklanmasa, «nusxalash» ni bosib, Excel yoki Google Sheets'ga qo'ying.</div></div>`:'<div class="g empty">Bu davrda tranzaksiya yo\'q.</div>'}`}
@@ -268,6 +283,7 @@ document.addEventListener("click",async e=>{const t=e.target.closest("[data-tab]
  else if(d.rule)recForm(d.rule);else if(d.m){vm=mshift(vm,+d.m);if(vm>cm())vm=cm();render()}else if(d.act=="more"){lim+=60;render()}else if(d.act=="newrule")recForm();else if(d.act=="bak")dlBak();else if(d.act=="cpbak")cp(bak(),"Zaxira nusxalandi");else if(d.act=="imp")impForm();else if(d.act=="newgoal")goalForm();else if(d.act=="exp")dlCsv();else if(d.act=="cp")cpCsv();
  else if(d.act=="theme"){S.th=document.documentElement.dataset.t=="dark"?"light":"dark";save();theme()}
  else if(d.act=="reset"&&await ask("BARCHA ma'lumotlar o'chiriladi. Qaytarib bo'lmaydi. Davom etasizmi?")){S=null;try{localStorage.removeItem("mf_bak")}catch(_){}await kv.del(Array.from({length:prevN},(_,i)=>"mf_"+i).concat("mf_n"));await load();theme();render()}});
+let ly=0;addEventListener("scroll",()=>{const y=scrollY;$("#fab").classList.toggle("hide",y>ly&&y>80);ly=y},{passive:true});
 $("#fab").onclick=()=>{try{tg.HapticFeedback.impactOccurred("medium")}catch(_){}txForm()};
 load().then(()=>{theme();runRec();render();pg();if(lock)recover()});
 </script>
