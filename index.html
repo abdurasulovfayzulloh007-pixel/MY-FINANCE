@@ -2,7 +2,7 @@
 <html lang="uz">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>MY FINANCE</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
@@ -79,6 +79,23 @@ nav button.on{background:rgb(var(--ac)/.16);box-shadow:inset 0 0 0 1px rgb(var(-
 .pg>*{animation:up .55s cubic-bezier(.2,.8,.2,1) both}
 .pg>*:nth-child(2){animation-delay:.05s}.pg>*:nth-child(3){animation-delay:.1s}.pg>*:nth-child(4){animation-delay:.15s}.pg>*:nth-child(5){animation-delay:.2s}.pg>*:nth-child(n+6){animation-delay:.25s}
 @keyframes up{from{opacity:0;transform:translateY(16px)}}
+/* ===== v4: dizayn ===== */
+:root{--r:20px}
+.hero{border-radius:30px;padding:24px 20px 18px;background:radial-gradient(rgba(255,255,255,.13) 1px,transparent 1.5px) 0 0/14px 14px,linear-gradient(135deg,#1e3a8a,#2563eb 45%,#06b6d4)}
+[data-t=dark] .hero{background:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1.5px) 0 0/14px 14px,linear-gradient(135deg,#0b2a7a,#1458e6 55%,#0e9fc1)}
+.hero .big{font-size:42px;letter-spacing:-1.5px;text-shadow:0 4px 24px rgba(0,0,0,.2)}
+.item{padding:11px 8px;margin:0 -8px;border-radius:14px;transition:background .2s,transform .12s}.item:hover{background:rgb(var(--ac)/.07)}.dh+.item{border:0}
+.ic{width:42px;height:42px;border-radius:14px;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c,#2563eb) 30%,transparent)}
+.dh{font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:rgb(var(--mu));margin:12px 0 2px}.dh:first-child{margin-top:0}
+.rec{font-style:normal;font-size:11px;margin-left:6px}
+.mnav{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px;padding:6px;border-radius:20px;background:var(--g);border:1px solid var(--gb);box-shadow:var(--sh)}
+.mnav b{font-size:16px;font-weight:800}.mnav button{width:42px;height:42px;border-radius:14px;border:0;background:rgb(var(--ac)/.14);color:rgb(var(--ac));font-size:24px;cursor:pointer;transition:transform .12s}.mnav button:active{transform:scale(.9)}.mnav button:disabled{opacity:.3}
+.dl{padding:4px 11px;border-radius:99px;font-weight:800;font-size:13px;background:rgb(var(--mu)/.14)}.dl.gd{background:rgba(16,185,129,.16);color:var(--ok)}.dl.bd{background:rgba(239,68,68,.16);color:var(--bad)}
+nav button.on::after{content:"";width:16px;height:3px;border-radius:3px;background:rgb(var(--ac));margin-top:1px}
+.in{border-radius:16px;transition:border-color .2s,box-shadow .2s}textarea.in{resize:vertical}
+.donut{box-shadow:0 14px 30px -12px rgb(var(--ac)/.55)}.fab{box-shadow:0 14px 30px -8px rgb(var(--ac)/.75),0 0 0 7px rgb(var(--ac)/.12)}
+.empty{line-height:1.6}
+#toast{border-radius:99px;padding:11px 18px;box-shadow:0 14px 30px rgba(0,0,0,.3);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);animation:tin .3s both}@keyframes tin{from{opacity:0;transform:translate(-50%,-14px)}}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 </head>
@@ -105,10 +122,14 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const $=s=>document.querySelector(s);
 const toast=m=>{const t=$("#toast");t.textContent=m;t.style.display="block";clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display="none",2400)};
 const ask=m=>new Promise(r=>tg&&tg.showConfirm?tg.showConfirm(m,r):r(confirm(m)));
-async function load(){let raw="";const n=+(await kv.get("mf_n")||0);prevN=n;for(let i=0;i<n;i++)raw+=await kv.get("mf_"+i)||"";
+let lock=false;
+const fresh=()=>({t:[],g:[],b:{},r:[],th:null,created:new Date().toISOString()});
+const valid=o=>o&&Array.isArray(o.t)&&Array.isArray(o.g)&&o.b&&typeof o.b=="object";
+async function load(){let raw="";const n=+(await kv.get("mf_n")||0);prevN=n;lock=false;for(let i=0;i<n;i++){const c=await kv.get("mf_"+i);if(c==null)lock=true;raw+=c||""}
  try{S=JSON.parse(raw)}catch{S=null}
- if(!S)S={t:[],g:[],b:{},th:null,created:new Date().toISOString()}}
-function save(){saving=saving.then(async()=>{const raw=JSON.stringify(S),n=Math.ceil(raw.length/CH);let ok=true;
+ if(!valid(S)){if(n>0||raw)lock=true;S=fresh()}
+ S.r=S.r||[]}
+function save(){if(lock)return toast("⚠ Ma'lumot buzilgan: saqlash o'chirilgan");saving=saving.then(async()=>{const raw=JSON.stringify(S),n=Math.ceil(raw.length/CH);let ok=true;try{localStorage.setItem("mf_bak",raw)}catch(_){}
  for(let i=0;i<n;i++)ok=(await kv.set("mf_"+i,raw.slice(i*CH,(i+1)*CH)))&&ok;
  ok=(await kv.set("mf_n",String(n)))&&ok;
  if(prevN>n)await kv.del(Array.from({length:prevN-n},(_,i)=>"mf_"+(n+i)));prevN=n;
@@ -124,7 +145,7 @@ const I={rep:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',home:'<path d="M3 1
 const TABS=[["home","Bosh sahifa"],["list","Tarix"],["pig","Jamg'arma"],["tgt","Byudjet"],["rep","Hisobot"],["more","Yana"]];
 let tab="home",flt="all",q="";
 function nav(){$("#nav").innerHTML=TABS.map(([k,l])=>`<button data-tab="${k}" class="${tab==k?"on":""}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>${l}</button>`).join("")}
-const txRow=x=>`<div class="item row" data-edit="${x.id}"><div class="ic" style="--c:${catCol(x.cat)}">${catIc(x.cat)}</div><div class="grow"><b>${esc(x.cat)}</b><span class="mu">${esc(x.note||(x.type=="in"?"Daromad":"Xarajat"))} · ${x.d}</span></div><b class="${x.type=="in"?"inc":"exp"}">${x.type=="in"?"+":"−"}${fmt(x.amt)}</b></div>`;
+const txRow=x=>`<div class="item row" data-edit="${x.id}"><div class="ic" style="--c:${catCol(x.cat)}">${catIc(x.cat)}</div><div class="grow"><b>${esc(x.cat)}${x.rid?'<em class="rec">🔁</em>':""}</b><span class="mu">${esc(x.note||(x.type=="in"?"Daromad":"Xarajat"))} · ${x.d}</span></div><b class="${x.type=="in"?"inc":"exp"}">${x.type=="in"?"+":"−"}${fmt(x.amt)}</b></div>`;
 function greet(){const h=new Date().getHours(),g=h<5?"Xayrli tun":h<12?"Xayrli tong":h<18?"Xayrli kun":"Xayrli kech",u=tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user,n=(u&&u.first_name)||"Do'stim";
  return`<div class="row sp" style="margin:2px 2px 14px"><div><div class="mu">${g}</div><b style="font-size:21px">${esc(n)}</b></div><div class="av">${esc(n[0].toUpperCase())}</div></div>`}
 function spark(){const t=today(),N=14,pts=[],sg=x=>x.type=="in"?x.amt:-x.amt;let run=sum(S.t.filter(x=>x.d<addD(t,1-N)),sg);
@@ -144,15 +165,15 @@ function vHome(){const s=stats(),cats={};s.m.filter(x=>x.type=="out").forEach(x=
 function vList(){let l=[...S.t].sort((a,b)=>b.d.localeCompare(a.d)||b.ts-a.ts);if(flt!="all")l=l.filter(x=>x.type==flt);
  if(q)l=l.filter(x=>(x.cat+" "+x.note).toLowerCase().includes(q.toLowerCase()));
  return`<h2>Tranzaksiyalar tarixi</h2><input class="in" id="q" placeholder="Qidirish…" value="${esc(q)}"><div class="chips">${[["all","Hammasi"],["in","Daromad"],["out","Xarajat"]].map(([k,v])=>`<div class="chip ${flt==k?"on":""}" data-f="${k}">${v}</div>`).join("")}</div>
- <div class="g">${l.length?l.map(txRow).join(""):'<div class="empty">Hech narsa topilmadi.</div>'}</div>`}
+ <div class="g">${l.length?byDay(l.slice(0,lim)):'<div class="empty">Hech narsa topilmadi.</div>'}${l.length>lim?`<button class="btn s" data-act="more">Yana (${l.length-lim})</button>`:""}</div>`}
 function vPig(){return`<h2>Jamg'arma maqsadlari</h2>${S.g.map(g=>{const p=Math.min(100,g.saved/g.target*100);return`<div class="g row" data-goal="${g.id}" style="cursor:pointer;gap:14px"><div class="ring" style="--p:${p}"><span>${Math.round(p)}%</span></div><div class="grow"><b>${esc(g.name)}</b><span class="mu">${fmt(g.saved)} / ${fmt(g.target)}</span><div class="bar"><i style="width:${p}%"></i></div><span class="mu">${g.saved>=g.target?"✓ Bajarildi":"Qoldi: "+fmt(g.target-g.saved)}${g.date?" · "+g.date:""}</span></div></div>`}).join("")||'<div class="g empty">Maqsad yo\'q. Masalan: «MacBook sotib olish».</div>'}<button class="btn" data-act="newgoal">+ Yangi maqsad</button>`}
 function vBud(){return`<h2>Oylik byudjet</h2><div class="g">${EXP.map(c=>{const l=S.b[c],sp=spentBy(c),p=l?sp/l*100:0,col=p>=100?"var(--bad)":p>=80?"var(--warn)":"rgb(var(--ac))";
  return`<div class="item" data-bud="${esc(c)}"><div class="row sp"><b>${esc(c)}</b><span class="mu">${l?fmt(l):"Belgilanmagan"}</span></div>${l?`<div class="bar"><i style="width:${Math.min(100,p)}%;background:${col}"></i></div><div class="row sp mu"><span>Sarflandi: ${fmt(sp)}</span><span style="color:${col}">${p>=100?"Limit oshdi":"Qoldi: "+fmt(l-sp)}</span></div>`:`<div class="mu">Shu oy sarflandi: ${fmt(sp)}</div>`}</div>`}).join("")}</div><div class="mu">Kategoriyani bosib limit belgilang.</div>`}
 function vMore(){return`<h2>Sozlamalar</h2><div class="g"><button class="btn s" data-act="theme">Mavzuni almashtirish (yorug' / qorong'i)</button><div class="mu" style="margin-top:12px">Hisob yaratilgan: ${new Date(S.created).toLocaleDateString("uz-UZ")}<br>Ma'lumotlar ${CS?"Telegram bulutida (barcha qurilmalaringizda)":"shu brauzerda (sinov rejimi — Telegram ichida bulutga yoziladi)"} saqlanadi.</div></div>
- <div class="g"><button class="btn d" data-act="reset">Barcha ma'lumotlarni o'chirish</button></div>`}
+ ${recCard()}${bakCard()}<div class="g"><button class="btn d" data-act="reset">Barcha ma'lumotlarni o'chirish</button></div>`}
 let per="month",cf=today(),ct=today();
 const addD=(s,n)=>{const d=new Date(s+"T00:00:00Z");d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
-function range(){const t=today();if(per=="week")return[addD(t,-6),t];if(per=="month")return[t.slice(0,8)+"01",t];if(per=="year")return[t.slice(0,4)+"-01-01",t];return cf<=ct?[cf,ct]:[ct,cf]}
+function range(){const t=today();if(per=="week")return[addD(t,-6),t];if(per=="month")return[vm+"-01",vm==t.slice(0,7)?t:vm+"-"+dim(vm)];if(per=="year")return[t.slice(0,4)+"-01-01",t];return cf<=ct?[cf,ct]:[ct,cf]}
 function buckets(f,t){const days=(Date.parse(t)-Date.parse(f))/864e5+1,out=[];
  if(days>62){let m=f.slice(0,7);while(m<=t.slice(0,7)){out.push({k:m,l:m.slice(5)});const d=new Date(m+"-01T00:00:00Z");d.setUTCMonth(d.getUTCMonth()+1);m=d.toISOString().slice(0,7)}return{out,len:7}}
  for(let i=0;i<days;i++){const d=addD(f,i);out.push({k:d,l:d.slice(8)})}return{out,len:10}}
@@ -164,8 +185,9 @@ function vRep(){const[f,t]=range(),L=S.t.filter(x=>x.d>=f&&x.d<=t),Ii=L.filter(x
  const{out,len}=buckets(f,t),vals=out.map(b=>({l:b.l,i:sum(Ii.filter(x=>x.d.slice(0,len)==b.k)),e:sum(E.filter(x=>x.d.slice(0,len)==b.k))})),mx=Math.max(1,...vals.map(v=>Math.max(v.i,v.e))),step=Math.ceil(vals.length/8),ce=grp(E),ci=grp(Ii);
  const h=v=>`height:${v/mx*100}%;min-height:${v>0?2:0}px`;
  return`<h2>Hisobotlar</h2><div class="chips">${[["week","Hafta"],["month","Oy"],["year","Yil"],["custom","Oraliq"]].map(([k,v])=>`<div class="chip ${per==k?"on":""}" data-p="${k}">${v}</div>`).join("")}</div>
- ${per=="custom"?`<div class="c2"><div><label>Dan</label><input class="in" id="cf" type="date" value="${cf}"></div><div><label>Gacha</label><input class="in" id="ct" type="date" value="${ct}"></div></div>`:`<div class="mu" style="margin:-2px 2px 10px">${f} — ${t}${per=="week"?" (oxirgi 7 kun)":""}</div>`}
+ ${per=="month"?mnav():""}${per=="custom"?`<div class="c2"><div><label>Dan</label><input class="in" id="cf" type="date" value="${cf}"></div><div><label>Gacha</label><input class="in" id="ct" type="date" value="${ct}"></div></div>`:`<div class="mu" style="margin:-2px 2px 10px">${f} — ${t}${per=="week"?" (oxirgi 7 kun)":""}</div>`}
  <div class="g"><div class="row sp"><span class="mu">Daromad</span><b class="inc">${fmt(inc)}</b></div><div class="row sp" style="margin:6px 0"><span class="mu">Xarajat</span><b class="exp">${fmt(exp)}</b></div><div class="row sp" style="border-top:1px solid var(--gb);padding-top:8px"><span class="mu">Sof o'zgarish</span><b class="${net<0?"exp":"inc"}">${net<0?"−":"+"}${fmt(Math.abs(net))}</b></div></div>
+ ${per=="month"?cmpCard(inc,exp,E):""}
  ${L.length?`<div class="g"><h2>Daromad va xarajat</h2><div style="display:flex;align-items:flex-end;gap:${vals.length>20?2:5}px;height:130px">${vals.map(v=>`<div style="flex:1;height:100%;display:flex;align-items:flex-end;gap:1px"><i class="gr" style="flex:1;${h(v.i)};background:var(--ok);border-radius:3px 3px 0 0"></i><i class="gr" style="flex:1;${h(v.e)};background:var(--bad);border-radius:3px 3px 0 0"></i></div>`).join("")}</div><div style="display:flex;gap:${vals.length>20?2:5}px;margin-top:4px">${vals.map((v,i)=>`<div class="mu" style="flex:1;text-align:center;font-size:10px;overflow:hidden">${i%step==0?v.l:""}</div>`).join("")}</div><div class="row mu" style="gap:14px;margin-top:8px"><span><i style="display:inline-block;width:9px;height:9px;border-radius:3px;background:var(--ok)"></i> Daromad</span><span><i style="display:inline-block;width:9px;height:9px;border-radius:3px;background:var(--bad)"></i> Xarajat</span></div></div>
  <div class="c2"><div class="g"><h1>Kunlik o'rtacha xarajat</h1><b>${fmt(exp/days)}</b></div><div class="g"><h1>Jamg'arish darajasi</h1><b>${inc>0?Math.round(net/inc*100)+"%":"—"}</b></div></div>
  ${ce.length?`<div class="g"><h2>Xarajatlar tarkibi</h2>${pie(ce,exp)}<div style="margin-top:10px">${catBars(ce,exp,"var(--bad)")}</div></div>`:""}
@@ -180,6 +202,41 @@ function cpCsv(){const r=tbl();if(r.length<2)return toast("Bu davrda ma'lumot yo
  const ok=()=>toast("Nusxalandi. Excel yoki Google Sheets'ga qo'ying.");
  const fb=()=>{const ta=document.createElement("textarea");ta.value=txt;document.body.append(ta);ta.select();try{document.execCommand("copy");ok()}catch{toast("Nusxalab bo'lmadi.")}ta.remove()};
  navigator.clipboard?navigator.clipboard.writeText(txt).then(ok,fb):fb()}
+let vm=cm(),lim=60;
+const MN=["Yanvar","Fevral","Mart","Aprel","May","Iyun","Iyul","Avgust","Sentabr","Oktyabr","Noyabr","Dekabr"];
+const mshift=(m,n)=>{const d=new Date(m+"-01T00:00:00Z");d.setUTCMonth(d.getUTCMonth()+n);return d.toISOString().slice(0,7)};
+const dim=m=>new Date(Date.UTC(+m.slice(0,4),+m.slice(5,7),0)).getUTCDate();
+const mnav=()=>`<div class="mnav"><button data-m="-1" aria-label="Oldingi oy">‹</button><b>${MN[+vm.slice(5)-1]} ${vm.slice(0,4)}</b><button data-m="1" ${vm>=cm()?"disabled":""} aria-label="Keyingi oy">›</button></div>`;
+const cmpCard=(inc,exp,E)=>{const tp=+today().slice(8),P=S.t.filter(x=>mkey(x.d)==mshift(vm,-1)&&(vm!=cm()||+x.d.slice(8)<=tp));if(!P.length)return"";
+ const pe=sum(P.filter(x=>x.type=="out")),pi=sum(P.filter(x=>x.type=="in")),pm=Object.fromEntries(grp(P.filter(x=>x.type=="out"))),
+ chip=(a,b,bad)=>{if(!b)return'<span class="mu">—</span>';const p=Math.round((a-b)/b*100),up=p>0;return`<span class="dl ${p==0?"":up==bad?"bd":"gd"}">${up?"▲":p<0?"▼":"•"} ${Math.abs(p)}%</span>`},
+ top=grp(E).map(([c,v])=>[c,v-(pm[c]||0)]).sort((a,b)=>b[1]-a[1])[0];
+ return`<div class="g"><h2>O'tgan oyga nisbatan</h2><div class="row sp"><span>Xarajat</span>${chip(exp,pe,true)}</div><div class="row sp" style="margin-top:8px"><span>Daromad</span>${chip(inc,pi,false)}</div>${top&&top[1]>0?`<div class="mu" style="margin-top:10px">Eng ko'p oshgan: <b>${esc(top[0])}</b> (+${fmt(top[1])})</div>`:""}<div class="mu" style="font-size:11px;margin-top:4px">${vm==cm()?"O'tgan oyning shu kunigacha bo'lgan qismi bilan":"To'liq oy bilan"} taqqoslandi</div></div>`};
+const dlab=d=>{const t=today();return d==t?"Bugun":d==addD(t,-1)?"Kecha":d};
+const byDay=l=>{let last="",h="";l.forEach(x=>{if(x.d!=last){last=x.d;const n=sum(l.filter(y=>y.d==x.d),y=>y.type=="in"?y.amt:-y.amt);h+=`<div class="row sp dh"><span>${dlab(x.d)}</span><span>${n<0?"−":"+"}${fmt(Math.abs(n))}</span></div>`}h+=txRow(x)});return h};
+const nm=m=>mshift(m,1);
+function runRec(){let ch=0;const t=today();S.r.forEach(r=>{for(let m=r.start.slice(0,7);m<=t.slice(0,7);m=nm(m)){const d=m+"-"+String(Math.min(r.day,dim(m))).padStart(2,"0");if(d>=r.start&&d<=t&&d>(r.last||"")){S.t.push({id:uid(),type:r.type,amt:r.amt,cat:r.cat,d,note:r.note,ts:Date.now(),rid:r.id});r.last=d;ch++}}});if(ch){save();toast(ch+" ta takroriy yozuv qo'shildi")}}
+const recCard=()=>`<div class="g"><h2 style="margin-top:0">🔁 Takroriy to'lovlar</h2>${S.r.map(r=>`<div class="item row" data-rule="${r.id}"><div class="ic" style="--c:${catCol(r.cat)}">${catIc(r.cat)}</div><div class="grow"><b>${esc(r.cat)}</b><span class="mu">Har oy ${r.day}-kuni${r.note?" · "+esc(r.note):""}</span></div><b class="${r.type=="in"?"inc":"exp"}">${r.type=="in"?"+":"−"}${fmt(r.amt)}</b></div>`).join("")||'<div class="empty">Ijara, internet, maosh kabilarni bir marta kiriting — har oy o\'zi qo\'shiladi.</div>'}<button class="btn s" data-act="newrule">+ Takroriy to'lov</button></div>`;
+const bakCard=()=>`<div class="g"><h2 style="margin-top:0">💾 Zaxira nusxa</h2><div class="mu" style="margin-bottom:8px">${S.t.length} yozuv · ${S.g.length} maqsad · ${S.r.length} qoida</div><button class="btn" data-act="bak">JSON yuklab olish</button><button class="btn s" data-act="cpbak">Nusxalash</button><button class="btn s" data-act="imp">Zaxiradan tiklash</button></div>`;
+function recForm(id){const r=S.r.find(x=>x.id==id)||{type:"out",amt:"",cat:"",day:1,note:"",start:today()};let ty=r.type;
+ const draw=()=>{const c=ty=="in"?INC:EXP;$("#rc").innerHTML=opt(c,r.cat&&c.includes(r.cat)?r.cat:c[0])};
+ sheet(`<h2>${id?"Takroriy to'lov":"Yangi takroriy to'lov"}</h2><div class="tg"><button data-ty="out" class="${ty=="out"?"on":""}">Xarajat</button><button data-ty="in" class="${ty=="in"?"on":""}">Daromad</button></div><label>Summa (so'm)</label><input class="in" id="ra" inputmode="numeric" value="${r.amt}"><label>Kategoriya</label><select class="in" id="rc"></select><label>Oyning qaysi kuni (1–31)</label><input class="in" id="rd" inputmode="numeric" value="${r.day}"><label>Boshlanish sanasi</label><input class="in" id="rs" type="date" value="${r.start}"><label>Izoh</label><input class="in" id="rn" maxlength="200" value="${esc(r.note)}"><button class="btn" id="rv">Saqlash</button>${id?'<button class="btn d" id="rx">O\'chirish</button>':""}`);draw();
+ document.querySelectorAll("[data-ty]").forEach(b=>b.onclick=()=>{ty=b.dataset.ty;document.querySelectorAll("[data-ty]").forEach(z=>z.classList.toggle("on",z==b));draw()});
+ $("#rv").onclick=()=>{const amt=+$("#ra").value.replace(/\s/g,""),day=Math.round(+$("#rd").value),start=$("#rs").value;if(!(amt>0))return toast("Summani kiriting.");if(!(day>=1&&day<=31))return toast("Kun 1 dan 31 gacha bo'lsin.");if(!start)return toast("Sanani tanlang.");
+  const n={id:id||uid(),type:ty,amt,cat:$("#rc").value,day,start,note:$("#rn").value.trim(),last:r.last};
+  if(id)S.r=S.r.map(x=>x.id==id?n:x);else S.r.push(n);close();runRec();save();render();toast("Saqlandi")};
+ if(id)$("#rx").onclick=async()=>{if(await ask("Qoida o'chiriladi (oldingi yozuvlar qoladi). Davom etasizmi?")){S.r=S.r.filter(x=>x.id!=id);save();close();render()}}}
+const cp=(txt,m)=>{const fb=()=>{const ta=document.createElement("textarea");ta.value=txt;document.body.append(ta);ta.select();try{document.execCommand("copy");toast(m)}catch{toast("Nusxalab bo'lmadi.")}ta.remove()};navigator.clipboard?navigator.clipboard.writeText(txt).then(()=>toast(m),fb):fb()};
+const bak=()=>JSON.stringify({app:"myfinance",v:2,at:new Date().toISOString(),data:S});
+function dlBak(){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([bak()],{type:"application/json"}));a.download=`myfinance_${today()}.json`;document.body.append(a);a.click();a.remove();toast("Zaxira fayli tayyorlandi")}
+function restore(txt){try{const j=JSON.parse(txt),o=j&&j.data?j.data:j;if(!valid(o))throw 0;o.r=o.r||[];S=o;lock=false;save();theme();close();runRec();render();toast("Tiklandi ✓")}catch{toast("Fayl noto'g'ri yoki buzilgan.")}}
+function impForm(){sheet(`<h2>Zaxiradan tiklash</h2><div class="mu">Joriy ma'lumotlar almashtiriladi.</div><label style="display:block;margin-top:10px">Fayl tanlang</label><input class="in" id="if" type="file" accept=".json,application/json"><label>yoki JSON matnini qo'ying</label><textarea class="in" id="it" rows="5"></textarea><button class="btn" id="ir">Tiklash</button>`);
+ $("#if").onchange=e=>{const f=e.target.files[0];if(f)f.text().then(t=>$("#it").value=t)};
+ $("#ir").onclick=async()=>{const t=$("#it").value.trim();if(!t)return toast("Fayl yoki matn kiriting.");if(await ask("Joriy ma'lumotlar almashtiriladi. Davom etasizmi?"))restore(t)}}
+function recover(){let b=null;try{b=localStorage.getItem("mf_bak")}catch(_){}
+ sheet(`<h2>⚠ Ma'lumotni o'qib bo'lmadi</h2><div class="mu">Eski ma'lumotlar o'chirilmagan. Himoya uchun saqlash vaqtincha o'chirildi.</div><button class="btn" id="r1">Qayta urinish</button>${b?'<button class="btn s" id="r2">Mahalliy nusxadan tiklash</button>':""}<button class="btn s" id="r3">JSON zaxiradan tiklash</button><button class="btn d" id="r4">Yangi boshlash (eski o\'chadi)</button>`);
+ $("#r1").onclick=async()=>{await load();close();render();if(lock)recover()};if(b)$("#r2").onclick=()=>restore(b);$("#r3").onclick=impForm;
+ $("#r4").onclick=async()=>{if(await ask("Eski ma'lumot butunlay o'chadi. Davom etasizmi?")){lock=false;S=fresh();save();close();render()}}}
 const V={rep:vRep,home:vHome,list:vList,pig:vPig,tgt:vBud,more:vMore};
 function render(){nav();$("#app").innerHTML=V[tab]();document.querySelectorAll("[data-count]").forEach(countUp);const cfi=$("#cf");if(cfi){cfi.onchange=e=>{cf=e.target.value||cf;render()};$("#ct").onchange=e=>{ct=e.target.value||ct;render()}}const qi=$("#q");if(qi)qi.oninput=e=>{q=e.target.value;const p=e.target.selectionStart;render();const n=$("#q");n.focus();n.setSelectionRange(p,p)}}
 function sheet(h){close();const o=document.createElement("div");o.className="ov";o.innerHTML=`<div class="sheet">${h}</div>`;o.onclick=e=>{if(e.target==o)close()};document.body.append(o)}
@@ -193,7 +250,7 @@ function txForm(id){const x=S.t.find(t=>t.id==id)||{type:"out",d:today(),cat:"",
  <button class="btn" id="ts">Saqlash</button>${id?'<button class="btn d" id="tx">O\'chirish</button>':""}`);draw();
  document.querySelectorAll("[data-ty]").forEach(b=>b.onclick=()=>{ty=b.dataset.ty;document.querySelectorAll("[data-ty]").forEach(z=>z.classList.toggle("on",z==b));draw()});
  $("#ts").onclick=()=>{const amt=+$("#ta").value.replace(/\s/g,"").replace(",","."),d=$("#td").value;if(!(amt>0))return toast("Summani to'g'ri kiriting.");if(!d)return toast("Sanani tanlang.");
-  const r={id:id||uid(),type:ty,amt,cat:$("#tc").value,d,note:$("#tn").value.trim(),ts:x.ts||Date.now()};
+  const r={id:id||uid(),type:ty,amt,cat:$("#tc").value,d,note:$("#tn").value.trim(),ts:x.ts||Date.now(),rid:x.rid};
   if(id)S.t=S.t.map(t=>t.id==id?r:t);else S.t.push(r);save();close();render();toast("Saqlandi")};
  if(id)$("#tx").onclick=async()=>{if(await ask("Bu yozuvni o'chirasizmi?")){S.t=S.t.filter(t=>t.id!=id);save();close();render()}}}
 function goalForm(){sheet(`<h2>Yangi maqsad</h2><label>Nomi</label><input class="in" id="gn" maxlength="60" placeholder="MacBook sotib olish"><label>Maqsad summasi (so'm)</label><input class="in" id="gt" inputmode="numeric"><label>Muddat (ixtiyoriy)</label><input class="in" id="gd" type="date"><button class="btn" id="gs">Yaratish</button>`);
@@ -206,13 +263,13 @@ function goalMoney(id){const g=S.g.find(x=>x.id==id);sheet(`<h2>${esc(g.name)}</
 function budForm(c){sheet(`<h2>${esc(c)} — oylik limit</h2><label>Limit (so'm)</label><input class="in" id="bl" inputmode="numeric" value="${S.b[c]||""}"><button class="btn" id="bs">Saqlash</button>${S.b[c]?'<button class="btn d" id="bd">Limitni olib tashlash</button>':""}`);
  $("#bs").onclick=()=>{const v=+$("#bl").value.replace(/\s/g,"");if(!(v>0))return toast("Limitni kiriting.");S.b[c]=v;save();close();render()};
  if(S.b[c])$("#bd").onclick=()=>{delete S.b[c];save();close();render()}}
-document.addEventListener("click",async e=>{const t=e.target.closest("[data-tab],[data-f],[data-edit],[data-goal],[data-bud],[data-p],[data-act]");if(!t)return;try{tg.HapticFeedback.impactOccurred("light")}catch(_){}const d=t.dataset;
+document.addEventListener("click",async e=>{const t=e.target.closest("[data-tab],[data-f],[data-edit],[data-goal],[data-bud],[data-p],[data-act],[data-rule],[data-m]");if(!t)return;try{tg.HapticFeedback.impactOccurred("light")}catch(_){}const d=t.dataset;
  if(d.tab){tab=d.tab;render();pg();scrollTo(0,0)}else if(d.f){flt=d.f;render()}else if(d.edit)txForm(d.edit);else if(d.goal)goalMoney(d.goal);else if(d.bud)budForm(d.bud);else if(d.p){per=d.p;render()}
- else if(d.act=="newgoal")goalForm();else if(d.act=="exp")dlCsv();else if(d.act=="cp")cpCsv();
+ else if(d.rule)recForm(d.rule);else if(d.m){vm=mshift(vm,+d.m);if(vm>cm())vm=cm();render()}else if(d.act=="more"){lim+=60;render()}else if(d.act=="newrule")recForm();else if(d.act=="bak")dlBak();else if(d.act=="cpbak")cp(bak(),"Zaxira nusxalandi");else if(d.act=="imp")impForm();else if(d.act=="newgoal")goalForm();else if(d.act=="exp")dlCsv();else if(d.act=="cp")cpCsv();
  else if(d.act=="theme"){S.th=document.documentElement.dataset.t=="dark"?"light":"dark";save();theme()}
- else if(d.act=="reset"&&await ask("BARCHA ma'lumotlar o'chiriladi. Qaytarib bo'lmaydi. Davom etasizmi?")){S=null;await kv.del(Array.from({length:prevN},(_,i)=>"mf_"+i).concat("mf_n"));await load();theme();render()}});
+ else if(d.act=="reset"&&await ask("BARCHA ma'lumotlar o'chiriladi. Qaytarib bo'lmaydi. Davom etasizmi?")){S=null;try{localStorage.removeItem("mf_bak")}catch(_){}await kv.del(Array.from({length:prevN},(_,i)=>"mf_"+i).concat("mf_n"));await load();theme();render()}});
 $("#fab").onclick=()=>{try{tg.HapticFeedback.impactOccurred("medium")}catch(_){}txForm()};
-load().then(()=>{theme();render();pg()});
+load().then(()=>{theme();runRec();render();pg();if(lock)recover()});
 </script>
 </body>
 </html>
