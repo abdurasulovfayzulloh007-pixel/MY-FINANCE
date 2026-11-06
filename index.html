@@ -111,6 +111,27 @@ h2{display:flex;align-items:center;gap:9px}h2::before{content:"";width:4px;heigh
 .chart{background:repeating-linear-gradient(to top,transparent 0 31px,rgb(var(--mu)/.14) 31px 32px)}
 .hero .big{font-size:clamp(30px,10.5vw,42px)}.pill>div{min-width:0}.pill b{overflow:hidden;text-overflow:ellipsis}
 .item>b{flex:none;white-space:nowrap}.btn{min-height:48px}
+/* ===== v6: forma, til, kategoriya ===== */
+.sheet{border-radius:30px 30px 0 0}.sheet::before{content:"";display:block;width:42px;height:5px;border-radius:5px;background:rgb(var(--mu)/.35);margin:0 auto 12px}
+.tg{display:flex;gap:4px;padding:4px;border-radius:18px;background:rgb(var(--mu)/.12)}
+.tg button{flex:1;height:44px;border:0;border-radius:14px;background:transparent;color:rgb(var(--mu));font-size:15px;font-weight:800;transition:all .25s}
+.tg button[data-ty=out].on{background:linear-gradient(135deg,#ef4444,#f97316);color:#fff;box-shadow:0 8px 20px -6px rgba(239,68,68,.65)}
+.tg button[data-ty=in].on{background:linear-gradient(135deg,#10b981,#06b6d4);color:#fff;box-shadow:0 8px 20px -6px rgba(16,185,129,.65)}
+.amt{position:relative;margin:14px 0 6px}.amt .in{height:74px;font-size:34px;font-weight:800;text-align:center;padding:0 64px 0 44px;letter-spacing:-1px;font-variant-numeric:tabular-nums;margin:0}
+.amt span{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-weight:700;color:rgb(var(--mu))}
+.amt::before{position:absolute;left:18px;top:50%;transform:translateY(-52%);font-size:32px;font-weight:800;z-index:1}
+.tf[data-k=out] .amt::before{content:"−";color:var(--bad)}.tf[data-k=in] .amt::before{content:"+";color:var(--ok)}
+.tf[data-k=out] #ta{color:var(--bad)}.tf[data-k=in] #ta{color:var(--ok)}
+.tf[data-k=out] #ts,.tf[data-k=out] #cs{background:linear-gradient(135deg,#ef4444,#f97316)}.tf[data-k=in] #ts,.tf[data-k=in] #cs{background:linear-gradient(135deg,#10b981,#06b6d4)}
+.cg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:6px 0 10px}
+.cc{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:16px;border:1.5px solid transparent;background:rgb(var(--mu)/.1);color:inherit;font-size:12px;font-weight:600;transition:all .2s}
+.cc i{font-style:normal;font-size:22px}.cc span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cc.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 18%,transparent);transform:scale(1.04)}
+.eg{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:6px 0}.eg button{height:46px;border-radius:13px;border:1.5px solid transparent;background:rgb(var(--mu)/.1);font-size:22px}.eg button.on{border-color:rgb(var(--ac));background:rgb(var(--ac)/.15)}
+.sw{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 12px}.sw button{width:34px;height:34px;border-radius:50%;border:3px solid transparent;background:var(--c)}.sw button.on{border-color:#fff;box-shadow:0 0 0 2px var(--c)}
+.lang{display:flex;gap:8px}.lang button{flex:1;height:46px;border-radius:14px;border:1.5px solid transparent;background:rgb(var(--mu)/.1);color:inherit;font-weight:700}.lang button.on{border-color:rgb(var(--ac));background:rgb(var(--ac)/.15)}
+.hero{position:relative;overflow:hidden}.hero::after{content:"";position:absolute;right:-50px;top:-50px;width:190px;height:190px;border-radius:50%;background:radial-gradient(rgba(255,255,255,.3),transparent 70%);pointer-events:none}
+nav button:active,.fab:active{transform:scale(.92)}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 </head>
@@ -129,21 +150,21 @@ const EXP=["Oziq-ovqat","Transport","Xarid","Ta'lim","Ko'ngilochar","Sog'liq","K
 const INC=["Maosh","Biznes","Sovg'a","Frilans","Boshqa daromad"];
 const COL=["#2563eb","#06b6d4","#8b5cf6","#f59e0b","#ef4444","#10b981","#ec4899","#64748b","#84cc16"];
 const IC={"Oziq-ovqat":"🍔","Transport":"🚕","Xarid":"🛍️","Ta'lim":"📚","Ko'ngilochar":"🎬","Sog'liq":"💊","Kommunal":"💡","Oila":"👨‍👩‍👧","Boshqa":"✨","Maosh":"💼","Biznes":"📈","Sovg'a":"🎁","Frilans":"💻","Boshqa daromad":"💰"};
-const catIc=c=>IC[c]||"•",catCol=c=>COL[Math.max(0,[...EXP,...INC].indexOf(c))%9];
+const catIc=c=>IC[c]||(CUS[c]&&CUS[c].i)||"•",catCol=c=>(CUS[c]&&CUS[c].c)||COL[Math.max(0,[...EXP,...INC].indexOf(c))%9];
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
-const fmt=n=>Math.round(n).toLocaleString("ru-RU").replace(/\u00a0|\u202f/g," ")+" so'm";
+const fmt=n=>Math.round(n).toLocaleString("ru-RU").replace(/\u00a0|\u202f/g," ")+" "+({ru:"сум",en:"UZS"}[S&&S.lang]||"so'm");
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const $=s=>document.querySelector(s);
 const toast=m=>{const t=$("#toast");t.textContent=m;t.style.display="block";clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display="none",2400)};
-const ask=m=>new Promise(r=>tg&&tg.showConfirm?tg.showConfirm(m,r):r(confirm(m)));
+const ask=m=>new Promise(r=>tg&&tg.showConfirm?tg.showConfirm(T(m),r):r(confirm(T(m))));
 let lock=false;
-const fresh=()=>({t:[],g:[],b:{},r:[],th:null,created:new Date().toISOString()});
+const fresh=()=>({t:[],g:[],b:{},r:[],c:[],th:null,created:new Date().toISOString()});
 const valid=o=>o&&Array.isArray(o.t)&&Array.isArray(o.g)&&o.b&&typeof o.b=="object";
 async function load(){let raw="";const n=+(await kv.get("mf_n")||0);prevN=n;lock=false;for(let i=0;i<n;i++){const c=await kv.get("mf_"+i);if(c==null)lock=true;raw+=c||""}
  try{S=JSON.parse(raw)}catch{S=null}
  if(!valid(S)){if(n>0||raw)lock=true;S=fresh()}
- S.r=S.r||[]}
+ S.r=S.r||[];S.c=S.c||[];syncCats()}
 function save(){if(lock)return toast("⚠ Ma'lumot buzilgan: saqlash o'chirilgan");saving=saving.then(async()=>{const raw=JSON.stringify(S),n=Math.ceil(raw.length/CH);let ok=true;try{localStorage.setItem("mf_bak",raw)}catch(_){}
  for(let i=0;i<n;i++)ok=(await kv.set("mf_"+i,raw.slice(i*CH,(i+1)*CH)))&&ok;
  ok=(await kv.set("mf_n",String(n)))&&ok;
@@ -185,7 +206,7 @@ function vPig(){return`<h2>Jamg'arma maqsadlari</h2>${S.g.map(g=>{const p=Math.m
 function vBud(){return`<h2>Oylik byudjet</h2><div class="g">${EXP.map(c=>{const l=S.b[c],sp=spentBy(c),p=l?sp/l*100:0,col=p>=100?"var(--bad)":p>=80?"var(--warn)":"rgb(var(--ac))";
  return`<div class="item" data-bud="${esc(c)}"><div class="row sp"><b>${esc(c)}</b><span class="mu">${l?fmt(l):"Belgilanmagan"}</span></div>${l?`<div class="bar"><i style="width:${Math.min(100,p)}%;background:${col}"></i></div><div class="row sp mu"><span>Sarflandi: ${fmt(sp)}</span><span style="color:${col}">${p>=100?"Limit oshdi":"Qoldi: "+fmt(l-sp)}</span></div>`:`<div class="mu">Shu oy sarflandi: ${fmt(sp)}</div>`}</div>`}).join("")}</div><div class="mu">Kategoriyani bosib limit belgilang.</div>`}
 function vMore(){return`<h2>Sozlamalar</h2><div class="g"><button class="btn s" data-act="theme">Mavzuni almashtirish (yorug' / qorong'i)</button><div class="mu" style="margin-top:12px">Hisob yaratilgan: ${new Date(S.created).toLocaleDateString("uz-UZ")}<br>Ma'lumotlar ${CS?"Telegram bulutida (barcha qurilmalaringizda)":"shu brauzerda (sinov rejimi — Telegram ichida bulutga yoziladi)"} saqlanadi.</div></div>
- ${recCard()}${bakCard()}<div class="g"><button class="btn d" data-act="reset">Barcha ma'lumotlarni o'chirish</button></div>`}
+ ${langCard()}${catCard()}${recCard()}${bakCard()}<div class="g"><button class="btn d" data-act="reset">Barcha ma'lumotlarni o'chirish</button></div>`}
 let per="month",cf=today(),ct=today();
 const addD=(s,n)=>{const d=new Date(s+"T00:00:00Z");d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
 function range(){const t=today();if(per=="week")return[addD(t,-6),t];if(per=="month")return[vm+"-01",vm==t.slice(0,7)?t:vm+"-"+dim(vm)];if(per=="year")return[t.slice(0,4)+"-01-01",t];return cf<=ct?[cf,ct]:[ct,cf]}
@@ -244,28 +265,205 @@ function recForm(id){const r=S.r.find(x=>x.id==id)||{type:"out",amt:"",cat:"",da
 const cp=(txt,m)=>{const fb=()=>{const ta=document.createElement("textarea");ta.value=txt;document.body.append(ta);ta.select();try{document.execCommand("copy");toast(m)}catch{toast("Nusxalab bo'lmadi.")}ta.remove()};navigator.clipboard?navigator.clipboard.writeText(txt).then(()=>toast(m),fb):fb()};
 const bak=()=>JSON.stringify({app:"myfinance",v:2,at:new Date().toISOString(),data:S});
 function dlBak(){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([bak()],{type:"application/json"}));a.download=`myfinance_${today()}.json`;document.body.append(a);a.click();a.remove();toast("Zaxira fayli tayyorlandi")}
-function restore(txt){try{const j=JSON.parse(txt),o=j&&j.data?j.data:j;if(!valid(o))throw 0;o.r=o.r||[];S=o;lock=false;save();theme();close();runRec();render();toast("Tiklandi ✓")}catch{toast("Fayl noto'g'ri yoki buzilgan.")}}
+function restore(txt){try{const j=JSON.parse(txt),o=j&&j.data?j.data:j;if(!valid(o))throw 0;o.r=o.r||[];o.c=o.c||[];S=o;syncCats();lock=false;save();theme();close();runRec();render();toast("Tiklandi ✓")}catch{toast("Fayl noto'g'ri yoki buzilgan.")}}
 function impForm(){sheet(`<h2>Zaxiradan tiklash</h2><div class="mu">Joriy ma'lumotlar almashtiriladi.</div><label style="display:block;margin-top:10px">Fayl tanlang</label><input class="in" id="if" type="file" accept=".json,application/json"><label>yoki JSON matnini qo'ying</label><textarea class="in" id="it" rows="5"></textarea><button class="btn" id="ir">Tiklash</button>`);
  $("#if").onchange=e=>{const f=e.target.files[0];if(f)f.text().then(t=>$("#it").value=t)};
  $("#ir").onclick=async()=>{const t=$("#it").value.trim();if(!t)return toast("Fayl yoki matn kiriting.");if(await ask("Joriy ma'lumotlar almashtiriladi. Davom etasizmi?"))restore(t)}}
 function recover(){let b=null;try{b=localStorage.getItem("mf_bak")}catch(_){}
  sheet(`<h2>⚠ Ma'lumotni o'qib bo'lmadi</h2><div class="mu">Eski ma'lumotlar o'chirilmagan. Himoya uchun saqlash vaqtincha o'chirildi.</div><button class="btn" id="r1">Qayta urinish</button>${b?'<button class="btn s" id="r2">Mahalliy nusxadan tiklash</button>':""}<button class="btn s" id="r3">JSON zaxiradan tiklash</button><button class="btn d" id="r4">Yangi boshlash (eski o\'chadi)</button>`);
  $("#r1").onclick=async()=>{await load();close();render();if(lock)recover()};if(b)$("#r2").onclick=()=>restore(b);$("#r3").onclick=impForm;
- $("#r4").onclick=async()=>{if(await ask("Eski ma'lumot butunlay o'chadi. Davom etasizmi?")){lock=false;S=fresh();save();close();render()}}}
+ $("#r4").onclick=async()=>{if(await ask("Eski ma'lumot butunlay o'chadi. Davom etasizmi?")){lock=false;S=fresh();syncCats();save();close();render()}}}
+const EXP0=[...EXP],INC0=[...INC];let CUS={};
+function syncCats(){const c=S.c||[],k=t=>c.filter(x=>x.t==t).map(x=>x.n);EXP.length=0;EXP.push(...EXP0.slice(0,-1),...k("out"),EXP0[EXP0.length-1]);INC.length=0;INC.push(...INC0.slice(0,-1),...k("in"),INC0[INC0.length-1]);CUS=Object.fromEntries(c.map(x=>[x.n,x]))}
+const EM=["🍞","☕","🚌","⛽","🏠","📱","🎮","🐶","✈️","💅","🏋️","🎓","🧾","💳","🛠️","🎁","🍕","🧸","📦","💰"];
+const D={},P=[[/^Har oy (\d+)-kuni$/,{ru:"Каждый месяц, $1-е число",en:"Monthly, day $1"}],[/^(\d+) ta takroriy yozuv qo'shildi$/,{ru:"Добавлено регулярных записей: $1",en:"$1 recurring entries added"}],[/^Yana \((\d+)\)$/,{ru:"Ещё ($1)",en:"More ($1)"}],[/^(\d+) yozuv$/,{ru:"$1 записей",en:"$1 entries"}],[/^(\d+) maqsad$/,{ru:"$1 целей",en:"$1 goals"}],[/^(\d+) qoida$/,{ru:"$1 правил",en:"$1 rules"}]];
+`Bosh sahifa¦Главная¦Home
+Tarix¦История¦History
+Jamg'arma¦Копилка¦Savings
+Byudjet¦Бюджет¦Budget
+Hisobot¦Отчёт¦Report
+Yana¦Ещё¦More
+Hisobotlar¦Отчёты¦Reports
+Hafta¦Неделя¦Week
+Oy¦Месяц¦Month
+Yil¦Год¦Year
+Oraliq¦Период¦Range
+Dan¦С¦From
+Gacha¦По¦To
+Daromad¦Доход¦Income
+Xarajat¦Расход¦Expense
+Kirim¦Доход¦Income
+Chiqim¦Расход¦Expense
+so'm¦сум¦UZS
+Sof o'zgarish¦Чистое изменение¦Net change
+Daromad va xarajat¦Доходы и расходы¦Income & expenses
+Kunlik o'rtacha xarajat¦Средний расход в день¦Avg. daily expense
+Jamg'arish darajasi¦Норма сбережений¦Savings rate
+Daromad manbalari¦Источники дохода¦Income sources
+Xarajatlar tarkibi¦Структура расходов¦Spending breakdown
+O'tgan oyga nisbatan¦К прошлому месяцу¦Vs. last month
+Eng ko'p oshgan:¦Больше всего выросло:¦Biggest increase:
+O'tgan oyning shu kunigacha bo'lgan qismi bilan taqqoslandi¦Сравнение с тем же периодом прошлого месяца¦Compared with the same period last month
+To'liq oy bilan taqqoslandi¦Сравнение с полным месяцем¦Compared with the full month
+Umumiy balans¦Общий баланс¦Total balance
+Daromad (oy)¦Доход (мес.)¦Income (mo.)
+Xarajat (oy)¦Расход (мес.)¦Expense (mo.)
+So'nggi tranzaksiyalar¦Последние операции¦Recent transactions
+Tranzaksiyalar tarixi¦История операций¦Transaction history
+Hammasi¦Все¦All
+Hali tranzaksiya yo'q.¦Операций пока нет.¦No transactions yet.
+Hech narsa topilmadi.¦Ничего не найдено.¦Nothing found.
+Bu davrda tranzaksiya yo'q.¦В этом периоде операций нет.¦No transactions in this period.
+Shu oy xarajat yo'q.¦В этом месяце расходов нет.¦No expenses this month.
+«+» tugmasi bilan birinchisini qo'shing.¦Добавьте первую кнопкой «+».¦Add your first one with “+”.
+Bugun¦Сегодня¦Today
+Kecha¦Вчера¦Yesterday
+Xayrli tong¦Доброе утро¦Good morning
+Xayrli kun¦Добрый день¦Good afternoon
+Xayrli kech¦Добрый вечер¦Good evening
+Xayrli tun¦Доброй ночи¦Good night
+Do'stim¦Друг¦Friend
+Jamg'arma maqsadlari¦Цели накоплений¦Savings goals
+Yangi maqsad¦Новая цель¦New goal
++ Yangi maqsad¦+ Новая цель¦+ New goal
+Maqsad yo'q. Masalan: «MacBook sotib olish».¦Целей нет. Например: «Купить MacBook».¦No goals yet. E.g. “Buy a MacBook”.
+Nomi¦Название¦Name
+Maqsad summasi (so'm)¦Сумма цели (сум)¦Target amount (UZS)
+Muddat (ixtiyoriy)¦Срок (необязательно)¦Deadline (optional)
+Yaratish¦Создать¦Create
+Yechib olish¦Снять¦Withdraw
+Qo'shish¦Добавить¦Add
+Maqsadni o'chirish¦Удалить цель¦Delete goal
+Jamg'arilgan¦Накоплено¦Saved
+Qoldi¦Осталось¦Left
+Oylik byudjet¦Месячный бюджет¦Monthly budget
+Kategoriyani bosib limit belgilang.¦Нажмите на категорию, чтобы задать лимит.¦Tap a category to set a limit.
+Limit (so'm)¦Лимит (сум)¦Limit (UZS)
+Limitni olib tashlash¦Убрать лимит¦Remove limit
+Sozlamalar¦Настройки¦Settings
+Mavzuni almashtirish (yorug' / qorong'i)¦Сменить тему (светлая / тёмная)¦Switch theme (light / dark)
+Barcha ma'lumotlarni o'chirish¦Удалить все данные¦Delete all data
+Eksport¦Экспорт¦Export
+Excel uchun yuklab olish (CSV)¦Скачать для Excel (CSV)¦Download for Excel (CSV)
+Jadvalni nusxalash¦Копировать таблицу¦Copy table
+Fayl tayyorlandi¦Файл готов¦File ready
+Yangi tranzaksiya¦Новая операция¦New transaction
+Tahrirlash¦Редактирование¦Edit
+Summa¦Сумма¦Amount
+Summa (so'm)¦Сумма (сум)¦Amount (UZS)
+Kategoriya¦Категория¦Category
+Sana¦Дата¦Date
+Izoh¦Комментарий¦Note
+Saqlash¦Сохранить¦Save
+Saqlandi¦Сохранено¦Saved
+O'chirish¦Удалить¦Delete
+Turi¦Тип¦Type
+Bu yozuvni o'chirasizmi?¦Удалить эту запись?¦Delete this entry?
+Qidirish…¦Поиск…¦Search…
+Tranzaksiya qo'shish¦Добавить операцию¦Add transaction
+Oldingi oy¦Прошлый месяц¦Previous month
+Keyingi oy¦Следующий месяц¦Next month
+Summani to'g'ri kiriting.¦Введите корректную сумму.¦Enter a valid amount.
+Summani kiriting.¦Введите сумму.¦Enter an amount.
+Sanani tanlang.¦Выберите дату.¦Pick a date.
+Nomini kiriting.¦Введите название.¦Enter a name.
+🔁 Takroriy to'lovlar¦🔁 Регулярные платежи¦🔁 Recurring payments
+Takroriy to'lov¦Регулярный платёж¦Recurring payment
+Yangi takroriy to'lov¦Новый регулярный платёж¦New recurring payment
++ Takroriy to'lov¦+ Регулярный платёж¦+ Recurring payment
+Ijara, internet, maosh kabilarni bir marta kiriting — har oy o'zi qo'shiladi.¦Введите аренду, интернет, зарплату один раз — дальше добавится само.¦Enter rent, internet or salary once — it will be added every month.
+Oyning qaysi kuni (1–31)¦День месяца (1–31)¦Day of month (1–31)
+Boshlanish sanasi¦Дата начала¦Start date
+Kun 1 dan 31 gacha bo'lsin.¦День должен быть от 1 до 31.¦Day must be 1–31.
+Qoida o'chiriladi (oldingi yozuvlar qoladi). Davom etasizmi?¦Правило будет удалено (записи останутся). Продолжить?¦The rule will be deleted (entries stay). Continue?
+💾 Zaxira nusxa¦💾 Резервная копия¦💾 Backup
+JSON yuklab olish¦Скачать JSON¦Download JSON
+Nusxalash¦Копировать¦Copy
+Zaxiradan tiklash¦Восстановить из копии¦Restore from backup
+Zaxira fayli tayyorlandi¦Файл копии готов¦Backup file ready
+Zaxira nusxalandi¦Копия скопирована¦Backup copied
+Tiklash¦Восстановить¦Restore
+Fayl tanlang¦Выберите файл¦Choose a file
+yoki JSON matnini qo'ying¦или вставьте JSON¦or paste JSON text
+Joriy ma'lumotlar almashtiriladi.¦Текущие данные будут заменены.¦Current data will be replaced.
+Tiklandi ✓¦Восстановлено ✓¦Restored ✓
+⚠ Ma'lumotni o'qib bo'lmadi¦⚠ Не удалось прочитать данные¦⚠ Couldn't read your data
+Eski ma'lumotlar o'chirilmagan. Himoya uchun saqlash vaqtincha o'chirildi.¦Старые данные не удалены. Для защиты сохранение временно отключено.¦Your old data is intact. Saving is paused to protect it.
+Qayta urinish¦Повторить¦Retry
+Mahalliy nusxadan tiklash¦Восстановить из локальной копии¦Restore from local copy
+JSON zaxiradan tiklash¦Восстановить из JSON¦Restore from JSON
+Yangi boshlash (eski o'chadi)¦Начать заново (старое удалится)¦Start fresh (old data is deleted)
+🏷️ Kategoriyalar¦🏷️ Категории¦🏷️ Categories
++ Kategoriya¦+ Категория¦+ Category
+Yangi kategoriya¦Новая категория¦New category
+Belgi¦Значок¦Icon
+Rang¦Цвет¦Color
+Bunday kategoriya bor.¦Такая категория уже есть.¦This category already exists.
+Kategoriya o'chiriladi (yozuvlar qoladi). Davom etasizmi?¦Категория будет удалена (записи останутся). Продолжить?¦The category will be deleted (entries stay). Continue?
+O'z kategoriyalaringiz yo'q.¦Своих категорий пока нет.¦No custom categories yet.
+Yanvar¦Январь¦January
+Fevral¦Февраль¦February
+Mart¦Март¦March
+Aprel¦Апрель¦April
+May¦Май¦May
+Iyun¦Июнь¦June
+Iyul¦Июль¦July
+Avgust¦Август¦August
+Sentabr¦Сентябрь¦September
+Oktyabr¦Октябрь¦October
+Noyabr¦Ноябрь¦November
+Dekabr¦Декабрь¦December
+Oziq-ovqat¦Еда¦Food
+Transport¦Транспорт¦Transport
+Xarid¦Покупки¦Shopping
+Ta'lim¦Образование¦Education
+Ko'ngilochar¦Развлечения¦Entertainment
+Sog'liq¦Здоровье¦Health
+Kommunal¦Коммуналка¦Utilities
+Oila¦Семья¦Family
+Boshqa¦Другое¦Other
+Maosh¦Зарплата¦Salary
+Biznes¦Бизнес¦Business
+Sovg'a¦Подарок¦Gift
+Frilans¦Фриланс¦Freelance
+Boshqa daromad¦Другой доход¦Other income`.split("\n").forEach(l=>{const[a,r,e]=l.split("¦");D[a]={ru:r,en:e}});
+const T=s=>{const L=S&&S.lang;if(!L||L=="uz")return s;const m=s.match(/^(\s*)([\s\S]*?)(\s*)$/),f=x=>{const d=D[x];if(d)return d[L];for(const[r,v]of P)if(r.test(x))return x.replace(r,v[L]);return x};return m[1]+(D[m[2]]?D[m[2]][L]:m[2].split(/( · |: |, )/).map((x,i)=>i%2?x:f(x)).join(""))+m[3]};
+const O=new WeakMap();
+function trn(root){const a=[];if(root.nodeType==3)a.push(root);else if(root.nodeType==1||root.nodeType==9){const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode())a.push(n)}
+ a.forEach(n=>{const q=n.parentNode;if(q&&/^(SCRIPT|STYLE|TEXTAREA)$/.test(q.nodeName))return;const o=O.has(n)?O.get(n):n.data;O.set(n,o);const t=T(o);if(t!==n.data)n.data=t});
+ if(root.querySelectorAll)root.querySelectorAll("[placeholder],[aria-label]").forEach(e=>["placeholder","aria-label"].forEach(k=>{if(e.hasAttribute(k)){const dk="o"+k.replace("-","");if(!e.dataset[dk])e.dataset[dk]=e.getAttribute(k);e.setAttribute(k,T(e.dataset[dk]))}}))}
+function lang0(){if(!S.lang){const u=tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user,c=u&&u.language_code;S.lang=["ru","en"].includes(c)?c:"uz"}document.documentElement.lang=S.lang}
+const gf=v=>v.replace(/\D/g,"").replace(/\B(?=(\d{3})+(?!\d))/g," ");
+const nf=e=>{if(e.id!="rd"&&/^\d{4,}$/.test(e.value))e.value=gf(e.value)};
+addEventListener("input",e=>{const el=e.target;if(el.matches&&el.matches("input[inputmode=numeric]")&&el.id!="rd"){const p=el.selectionStart,d=el.value.slice(0,p).replace(/\D/g,"").length,v=gf(el.value);el.value=v;let n=0,i=0;while(i<v.length&&n<d){if(v[i]!=" ")n++;i++}try{el.setSelectionRange(i,i)}catch(_){}}});
+new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{trn(n);if(n.querySelectorAll)n.querySelectorAll("input[inputmode=numeric]").forEach(nf)}))).observe(document.body,{childList:true,subtree:true});
+const langCard=()=>`<div class="g"><h2 style="margin-top:0">🌐 Til / Язык / Language</h2><div class="lang">${[["uz","O'zbekcha"],["ru","Русский"],["en","English"]].map(([k,n])=>`<button data-lang="${k}" class="${S.lang==k?"on":""}">${n}</button>`).join("")}</div></div>`;
+const catCard=()=>`<div class="g"><h2 style="margin-top:0">🏷️ Kategoriyalar</h2>${S.c.map(c=>`<div class="item row" data-cat="${esc(c.n)}"><div class="ic" style="--c:${c.c}">${c.i}</div><div class="grow"><b>${esc(c.n)}</b><span class="mu">${c.t=="in"?"Kirim":"Chiqim"}</span></div></div>`).join("")||'<div class="empty">O\'z kategoriyalaringiz yo\'q.</div>'}<button class="btn s" data-act="newcat">+ Kategoriya</button></div>`;
+function catForm(n){const c=S.c.find(x=>x.n==n),o=c||{t:"out",n:"",i:EM[0],c:COL[0]};let ty=o.t,ic=o.i,co=o.c;
+ sheet(`<div class="tf" data-k="${ty}"><h2>${c?"Kategoriya":"Yangi kategoriya"}</h2><div class="tg"><button data-ty="out" class="${ty=="out"?"on":""}">Chiqim</button><button data-ty="in" class="${ty=="in"?"on":""}">Kirim</button></div><label>Nomi</label><input class="in" id="cn" maxlength="24" value="${esc(o.n)}"><label>Belgi</label><div class="eg">${EM.map(e=>`<button type="button" data-e="${e}" class="${e==ic?"on":""}">${e}</button>`).join("")}</div><label>Rang</label><div class="sw">${COL.map(k=>`<button type="button" data-col="${k}" style="--c:${k}" class="${k==co?"on":""}"></button>`).join("")}</div><button class="btn" id="cs">Saqlash</button>${c?'<button class="btn d" id="cx">O\'chirish</button>':""}</div>`);
+ const mark=()=>{document.querySelectorAll("[data-e]").forEach(b=>b.classList.toggle("on",b.dataset.e==ic));document.querySelectorAll("[data-col]").forEach(b=>b.classList.toggle("on",b.dataset.col==co))};
+ document.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>{ic=b.dataset.e;mark()});document.querySelectorAll("[data-col]").forEach(b=>b.onclick=()=>{co=b.dataset.col;mark()});
+ document.querySelectorAll("[data-ty]").forEach(b=>b.onclick=()=>{ty=b.dataset.ty;document.querySelectorAll("[data-ty]").forEach(z=>z.classList.toggle("on",z==b));$(".tf").dataset.k=ty});
+ $("#cs").onclick=()=>{const nn=$("#cn").value.trim();if(!nn)return toast("Nomini kiriting.");if([...EXP0,...INC0,...S.c.filter(x=>x.n!=n).map(x=>x.n)].includes(nn))return toast("Bunday kategoriya bor.");
+  if(c&&n!=nn){S.t.forEach(t=>{if(t.cat==n)t.cat=nn});S.r.forEach(t=>{if(t.cat==n)t.cat=nn});if(S.b[n]!=null){S.b[nn]=S.b[n];delete S.b[n]}}
+  const v={n:nn,t:ty,i:ic,c:co};S.c=c?S.c.map(x=>x.n==n?v:x):[...S.c,v];syncCats();save();close();render();toast("Saqlandi")};
+ if(c)$("#cx").onclick=async()=>{if(await ask("Kategoriya o'chiriladi (yozuvlar qoladi). Davom etasizmi?")){S.c=S.c.filter(x=>x.n!=n);syncCats();save();close();render()}}}
 const V={rep:vRep,home:vHome,list:vList,pig:vPig,tgt:vBud,more:vMore};
 function render(){nav();$("#app").innerHTML=V[tab]();document.querySelectorAll("[data-count]").forEach(countUp);const cfi=$("#cf");if(cfi){cfi.onchange=e=>{cf=e.target.value||cf;render()};$("#ct").onchange=e=>{ct=e.target.value||ct;render()}}const qi=$("#q");if(qi)qi.oninput=e=>{q=e.target.value;const p=e.target.selectionStart;render();const n=$("#q");n.focus();n.setSelectionRange(p,p)}}
 function sheet(h){close();const o=document.createElement("div");o.className="ov";o.innerHTML=`<div class="sheet">${h}</div>`;o.onclick=e=>{if(e.target==o)close()};document.body.append(o)}
 function close(){document.querySelectorAll(".ov").forEach(o=>o.remove())}
-const opt=(a,v)=>a.map(x=>`<option ${x==v?"selected":""}>${esc(x)}</option>`).join("");
-function txForm(id){const x=S.t.find(t=>t.id==id)||{type:"out",d:today(),cat:"",amt:"",note:""};let ty=x.type;
- const draw=()=>{const cats=ty=="in"?INC:EXP;$("#tc").innerHTML=opt(cats,x.cat&&cats.includes(x.cat)?x.cat:cats[0])};
- sheet(`<h2>${id?"Tahrirlash":"Yangi tranzaksiya"}</h2><div class="tg"><button data-ty="out" class="${ty=="out"?"on":""}">Xarajat</button><button data-ty="in" class="${ty=="in"?"on":""}">Daromad</button></div>
- <label>Summa (so'm)</label><input class="in" id="ta" inputmode="numeric" placeholder="0" value="${x.amt}"><label>Kategoriya</label><select class="in" id="tc"></select>
- <label>Sana</label><input class="in" id="td" type="date" value="${x.d}"><label>Izoh</label><input class="in" id="tn" maxlength="200" value="${esc(x.note)}">
- <button class="btn" id="ts">Saqlash</button>${id?'<button class="btn d" id="tx">O\'chirish</button>':""}`);draw();
+const opt=(a,v)=>a.map(x=>`<option value="${esc(x)}" ${x==v?"selected":""}>${esc(x)}</option>`).join("");
+function txForm(id){const x=S.t.find(t=>t.id==id)||{type:"out",d:today(),cat:"",amt:"",note:""};let ty=x.type,cat=x.cat;
+ const draw=()=>{const cs=ty=="in"?INC:EXP;if(!cs.includes(cat))cat=cs[0];$(".tf").dataset.k=ty;$("#tcg").innerHTML=cs.map(c=>`<button type="button" class="cc${c==cat?" on":""}" data-c="${esc(c)}" style="--c:${catCol(c)}"><i>${catIc(c)}</i><span>${esc(c)}</span></button>`).join("");$("#tcg").querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{cat=b.dataset.c;draw()})};
+ sheet(`<div class="tf" data-k="${ty}"><h2>${id?"Tahrirlash":"Yangi tranzaksiya"}</h2><div class="tg"><button data-ty="out" class="${ty=="out"?"on":""}">Chiqim</button><button data-ty="in" class="${ty=="in"?"on":""}">Kirim</button></div>
+ <div class="amt"><input class="in" id="ta" inputmode="numeric" placeholder="0" autocomplete="off" value="${x.amt}"><span>so'm</span></div>
+ <label>Kategoriya</label><div class="cg" id="tcg"></div>
+ <div class="c2"><div><label>Sana</label><input class="in" id="td" type="date" value="${x.d}"></div><div><label>Izoh</label><input class="in" id="tn" maxlength="200" value="${esc(x.note)}"></div></div>
+ <button class="btn" id="ts">Saqlash</button>${id?'<button class="btn d" id="tx">O\'chirish</button>':""}</div>`);draw();
  document.querySelectorAll("[data-ty]").forEach(b=>b.onclick=()=>{ty=b.dataset.ty;document.querySelectorAll("[data-ty]").forEach(z=>z.classList.toggle("on",z==b));draw()});
+ if(!id)setTimeout(()=>$("#ta")&&$("#ta").focus(),280);
  $("#ts").onclick=()=>{const amt=+$("#ta").value.replace(/\s/g,"").replace(",","."),d=$("#td").value;if(!(amt>0))return toast("Summani to'g'ri kiriting.");if(!d)return toast("Sanani tanlang.");
-  const r={id:id||uid(),type:ty,amt,cat:$("#tc").value,d,note:$("#tn").value.trim(),ts:x.ts||Date.now(),rid:x.rid};
+  const r={id:id||uid(),type:ty,amt,cat,d,note:$("#tn").value.trim(),ts:x.ts||Date.now(),rid:x.rid};
   if(id)S.t=S.t.map(t=>t.id==id?r:t);else S.t.push(r);save();close();render();toast("Saqlandi")};
  if(id)$("#tx").onclick=async()=>{if(await ask("Bu yozuvni o'chirasizmi?")){S.t=S.t.filter(t=>t.id!=id);save();close();render()}}}
 function goalForm(){sheet(`<h2>Yangi maqsad</h2><label>Nomi</label><input class="in" id="gn" maxlength="60" placeholder="MacBook sotib olish"><label>Maqsad summasi (so'm)</label><input class="in" id="gt" inputmode="numeric"><label>Muddat (ixtiyoriy)</label><input class="in" id="gd" type="date"><button class="btn" id="gs">Yaratish</button>`);
@@ -278,14 +476,14 @@ function goalMoney(id){const g=S.g.find(x=>x.id==id);sheet(`<h2>${esc(g.name)}</
 function budForm(c){sheet(`<h2>${esc(c)} — oylik limit</h2><label>Limit (so'm)</label><input class="in" id="bl" inputmode="numeric" value="${S.b[c]||""}"><button class="btn" id="bs">Saqlash</button>${S.b[c]?'<button class="btn d" id="bd">Limitni olib tashlash</button>':""}`);
  $("#bs").onclick=()=>{const v=+$("#bl").value.replace(/\s/g,"");if(!(v>0))return toast("Limitni kiriting.");S.b[c]=v;save();close();render()};
  if(S.b[c])$("#bd").onclick=()=>{delete S.b[c];save();close();render()}}
-document.addEventListener("click",async e=>{const t=e.target.closest("[data-tab],[data-f],[data-edit],[data-goal],[data-bud],[data-p],[data-act],[data-rule],[data-m]");if(!t)return;try{tg.HapticFeedback.impactOccurred("light")}catch(_){}const d=t.dataset;
+document.addEventListener("click",async e=>{const t=e.target.closest("[data-tab],[data-f],[data-edit],[data-goal],[data-bud],[data-p],[data-act],[data-rule],[data-m],[data-lang],[data-cat]");if(!t)return;try{tg.HapticFeedback.impactOccurred("light")}catch(_){}const d=t.dataset;
  if(d.tab){tab=d.tab;render();pg();scrollTo(0,0)}else if(d.f){flt=d.f;render()}else if(d.edit)txForm(d.edit);else if(d.goal)goalMoney(d.goal);else if(d.bud)budForm(d.bud);else if(d.p){per=d.p;render()}
- else if(d.rule)recForm(d.rule);else if(d.m){vm=mshift(vm,+d.m);if(vm>cm())vm=cm();render()}else if(d.act=="more"){lim+=60;render()}else if(d.act=="newrule")recForm();else if(d.act=="bak")dlBak();else if(d.act=="cpbak")cp(bak(),"Zaxira nusxalandi");else if(d.act=="imp")impForm();else if(d.act=="newgoal")goalForm();else if(d.act=="exp")dlCsv();else if(d.act=="cp")cpCsv();
+ else if(d.lang){S.lang=d.lang;document.documentElement.lang=d.lang;save();render();trn(document.body)}else if(d.cat)catForm(d.cat);else if(d.act=="newcat")catForm();else if(d.rule)recForm(d.rule);else if(d.m){vm=mshift(vm,+d.m);if(vm>cm())vm=cm();render()}else if(d.act=="more"){lim+=60;render()}else if(d.act=="newrule")recForm();else if(d.act=="bak")dlBak();else if(d.act=="cpbak")cp(bak(),"Zaxira nusxalandi");else if(d.act=="imp")impForm();else if(d.act=="newgoal")goalForm();else if(d.act=="exp")dlCsv();else if(d.act=="cp")cpCsv();
  else if(d.act=="theme"){S.th=document.documentElement.dataset.t=="dark"?"light":"dark";save();theme()}
  else if(d.act=="reset"&&await ask("BARCHA ma'lumotlar o'chiriladi. Qaytarib bo'lmaydi. Davom etasizmi?")){S=null;try{localStorage.removeItem("mf_bak")}catch(_){}await kv.del(Array.from({length:prevN},(_,i)=>"mf_"+i).concat("mf_n"));await load();theme();render()}});
 let ly=0;addEventListener("scroll",()=>{const y=scrollY;$("#fab").classList.toggle("hide",y>ly&&y>80);ly=y},{passive:true});
 $("#fab").onclick=()=>{try{tg.HapticFeedback.impactOccurred("medium")}catch(_){}txForm()};
-load().then(()=>{theme();runRec();render();pg();if(lock)recover()});
+load().then(()=>{theme();lang0();runRec();render();pg();trn(document.body);if(lock)recover()});
 </script>
 </body>
 </html>
