@@ -132,15 +132,42 @@ h2{display:flex;align-items:center;gap:9px}h2::before{content:"";width:4px;heigh
 .lang{display:flex;gap:8px}.lang button{flex:1;height:46px;border-radius:14px;border:1.5px solid transparent;background:rgb(var(--mu)/.1);color:inherit;font-weight:700}.lang button.on{border-color:rgb(var(--ac));background:rgb(var(--ac)/.15)}
 .hero{position:relative;overflow:hidden}.hero::after{content:"";position:absolute;right:-50px;top:-50px;width:190px;height:190px;border-radius:50%;background:radial-gradient(rgba(255,255,255,.3),transparent 70%);pointer-events:none}
 nav button:active,.fab:active{transform:scale(.92)}
+/* ===== v7: telefon, jonli fon, animatsiya ===== */
+html{height:100%;-webkit-text-size-adjust:100%}
+body{min-height:100dvh;overscroll-behavior-y:none;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,select{-webkit-user-select:text;user-select:text;font-size:16px!important}
+input[type=date].in{font-size:16px!important}
+button{touch-action:manipulation}
+.sheet{max-height:90dvh;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#bg{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+#bg u{position:absolute;width:70vmax;height:70vmax;border-radius:50%;will-change:transform;text-decoration:none}
+#bg u:nth-child(1){left:-25vmax;top:-20vmax;background:radial-gradient(circle,rgb(var(--ac)/.36),transparent 65%);animation:o1 24s ease-in-out infinite alternate}
+#bg u:nth-child(2){right:-30vmax;top:25vh;background:radial-gradient(circle,rgba(139,92,246,.32),transparent 65%);animation:o2 30s ease-in-out infinite alternate}
+#bg u:nth-child(3){left:-10vmax;bottom:-35vmax;background:radial-gradient(circle,var(--ac2),transparent 65%);opacity:.35;animation:o3 28s ease-in-out infinite alternate}
+@keyframes o1{to{transform:translate3d(30vmax,18vmax,0) scale(1.15)}}@keyframes o2{to{transform:translate3d(-28vmax,-20vmax,0) scale(.9)}}@keyframes o3{to{transform:translate3d(22vmax,-14vmax,0) scale(1.2)}}
+#bg b{position:absolute;bottom:-12px;width:var(--s);height:var(--s);border-radius:50%;background:rgb(var(--ac)/.55);opacity:0;animation:pf var(--d) linear var(--l) infinite;will-change:transform}
+#bg b.rg{background:transparent;border:1.5px solid rgb(var(--ac)/.5)}
+@keyframes pf{0%{opacity:0;transform:translate3d(0,0,0)}10%{opacity:.8}85%{opacity:.5}100%{opacity:0;transform:translate3d(var(--x),-108vh,0)}}
+#bg.off *{animation-play-state:paused}
+.splash{display:grid;place-items:center;align-content:center;gap:12px;min-height:70vh;font-weight:800;letter-spacing:3px;font-size:13px;color:rgb(var(--mu))}
+.splash i{font-style:normal;font-size:56px;animation:sp 1.2s ease-in-out infinite alternate}@keyframes sp{from{transform:scale(.88) rotate(-8deg);opacity:.6}to{transform:scale(1.1) rotate(8deg);opacity:1}}
+.fab::before{content:"";position:absolute;inset:0;border-radius:50%;animation:fr 2.8s ease-out infinite;pointer-events:none}
+@keyframes fr{0%{box-shadow:0 0 0 0 rgb(var(--ac)/.5)}80%,100%{box-shadow:0 0 0 20px rgb(var(--ac)/0)}}
+.shake{animation:shk .4s}@keyframes shk{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.g{background-image:linear-gradient(180deg,rgba(255,255,255,.08),transparent 60%)}
+.item>b.inc,.item>b.exp{padding:5px 10px;border-radius:11px;font-size:13px;background:color-mix(in srgb,currentColor 12%,transparent)}
+nav button.on svg{transform:translateY(-1px) scale(1.1)}nav svg{transition:transform .3s cubic-bezier(.3,1.6,.5,1)}
+.ver{text-align:center;font-size:12px;color:rgb(var(--mu));opacity:.7;padding:4px 0 20px}
+@media(prefers-reduced-motion:reduce){#bg *,.fab::before,.splash i,.pg>*{animation:none!important}}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-<div id="app"></div><div id="toast" role="status"></div>
+<div id="bg" aria-hidden="true"></div><div id="app"><div class="splash"><i>💎</i><b>MY FINANCE</b></div></div><div id="toast" role="status"></div>
 <button class="fab" id="fab" aria-label="Tranzaksiya qo'shish"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
 <nav class="g" id="nav"></nav>
 <script>
-const tg=window.Telegram&&Telegram.WebApp;if(tg){tg.ready();tg.expand()}
+const tg=window.Telegram&&Telegram.WebApp;if(tg){tg.ready();tg.expand();try{tg.disableVerticalSwipes()}catch(_){}}
 const CS=tg&&tg.initData&&tg.CloudStorage?tg.CloudStorage:null;
 const kv={get:k=>new Promise(r=>CS?CS.getItem(k,(e,v)=>r(e?null:v||null)):r(localStorage.getItem(k))),
  set:(k,v)=>new Promise(r=>CS?CS.setItem(k,v,e=>r(!e)):(localStorage.setItem(k,v),r(true))),
@@ -156,15 +183,15 @@ const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOStr
 const fmt=n=>Math.round(n).toLocaleString("ru-RU").replace(/\u00a0|\u202f/g," ")+" "+({ru:"сум",en:"UZS"}[S&&S.lang]||"so'm");
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const $=s=>document.querySelector(s);
-const toast=m=>{const t=$("#toast");t.textContent=m;t.style.display="block";clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display="none",2400)};
+const toast=m=>{try{tg.HapticFeedback.notificationOccurred(/kiriting|tanlang|noto'g'ri|bor\.|buzilgan/.test(m)?"error":"success")}catch(_){}const t=$("#toast");t.textContent=m;t.style.display="block";clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display="none",2400)};
 const ask=m=>new Promise(r=>tg&&tg.showConfirm?tg.showConfirm(T(m),r):r(confirm(T(m))));
 let lock=false;
-const fresh=()=>({t:[],g:[],b:{},r:[],c:[],th:null,created:new Date().toISOString()});
+const fresh=()=>({v:DV,t:[],g:[],b:{},r:[],c:[],th:null,created:new Date().toISOString()});
 const valid=o=>o&&Array.isArray(o.t)&&Array.isArray(o.g)&&o.b&&typeof o.b=="object";
 async function load(){let raw="";const n=+(await kv.get("mf_n")||0);prevN=n;lock=false;for(let i=0;i<n;i++){const c=await kv.get("mf_"+i);if(c==null)lock=true;raw+=c||""}
  try{S=JSON.parse(raw)}catch{S=null}
  if(!valid(S)){if(n>0||raw)lock=true;S=fresh()}
- S.r=S.r||[];S.c=S.c||[];syncCats()}
+ S.r=S.r||[];S.c=S.c||[];if((S.v||0)<DV&&!lock){try{localStorage.setItem("mf_bak_pre",raw)}catch(_){}}migrate();syncCats()}
 function save(){if(lock)return toast("⚠ Ma'lumot buzilgan: saqlash o'chirilgan");saving=saving.then(async()=>{const raw=JSON.stringify(S),n=Math.ceil(raw.length/CH);let ok=true;try{localStorage.setItem("mf_bak",raw)}catch(_){}
  for(let i=0;i<n;i++)ok=(await kv.set("mf_"+i,raw.slice(i*CH,(i+1)*CH)))&&ok;
  ok=(await kv.set("mf_n",String(n)))&&ok;
@@ -206,7 +233,7 @@ function vPig(){return`<h2>Jamg'arma maqsadlari</h2>${S.g.map(g=>{const p=Math.m
 function vBud(){return`<h2>Oylik byudjet</h2><div class="g">${EXP.map(c=>{const l=S.b[c],sp=spentBy(c),p=l?sp/l*100:0,col=p>=100?"var(--bad)":p>=80?"var(--warn)":"rgb(var(--ac))";
  return`<div class="item" data-bud="${esc(c)}"><div class="row sp"><b>${esc(c)}</b><span class="mu">${l?fmt(l):"Belgilanmagan"}</span></div>${l?`<div class="bar"><i style="width:${Math.min(100,p)}%;background:${col}"></i></div><div class="row sp mu"><span>Sarflandi: ${fmt(sp)}</span><span style="color:${col}">${p>=100?"Limit oshdi":"Qoldi: "+fmt(l-sp)}</span></div>`:`<div class="mu">Shu oy sarflandi: ${fmt(sp)}</div>`}</div>`}).join("")}</div><div class="mu">Kategoriyani bosib limit belgilang.</div>`}
 function vMore(){return`<h2>Sozlamalar</h2><div class="g"><button class="btn s" data-act="theme">Mavzuni almashtirish (yorug' / qorong'i)</button><div class="mu" style="margin-top:12px">Hisob yaratilgan: ${new Date(S.created).toLocaleDateString("uz-UZ")}<br>Ma'lumotlar ${CS?"Telegram bulutida (barcha qurilmalaringizda)":"shu brauzerda (sinov rejimi — Telegram ichida bulutga yoziladi)"} saqlanadi.</div></div>
- ${langCard()}${catCard()}${recCard()}${bakCard()}<div class="g"><button class="btn d" data-act="reset">Barcha ma'lumotlarni o'chirish</button></div>`}
+ ${langCard()}${catCard()}${recCard()}${bakCard()}<div class="g"><button class="btn d" data-act="reset">Barcha ma'lumotlarni o'chirish</button></div><div class="ver">MY FINANCE · v${APP_V} · data v${S.v}</div>`}
 let per="month",cf=today(),ct=today();
 const addD=(s,n)=>{const d=new Date(s+"T00:00:00Z");d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
 function range(){const t=today();if(per=="week")return[addD(t,-6),t];if(per=="month")return[vm+"-01",vm==t.slice(0,7)?t:vm+"-"+dim(vm)];if(per=="year")return[t.slice(0,4)+"-01-01",t];return cf<=ct?[cf,ct]:[ct,cf]}
@@ -251,7 +278,7 @@ const cmpCard=(inc,exp,E)=>{const tp=+today().slice(8),P=S.t.filter(x=>mkey(x.d)
 const dlab=d=>{const t=today();return d==t?"Bugun":d==addD(t,-1)?"Kecha":d};
 const byDay=l=>{let last="",h="";l.forEach(x=>{if(x.d!=last){last=x.d;const n=sum(l.filter(y=>y.d==x.d),y=>y.type=="in"?y.amt:-y.amt);h+=`<div class="row sp dh"><span>${dlab(x.d)}</span><span>${n<0?"−":"+"}${fmt(Math.abs(n))}</span></div>`}h+=txRow(x)});return h};
 const nm=m=>mshift(m,1);
-function runRec(){let ch=0;const t=today();S.r.forEach(r=>{for(let m=r.start.slice(0,7);m<=t.slice(0,7);m=nm(m)){const d=m+"-"+String(Math.min(r.day,dim(m))).padStart(2,"0");if(d>=r.start&&d<=t&&d>(r.last||"")){S.t.push({id:uid(),type:r.type,amt:r.amt,cat:r.cat,d,note:r.note,ts:Date.now(),rid:r.id});r.last=d;ch++}}});if(ch){save();toast(ch+" ta takroriy yozuv qo'shildi")}}
+function runRec(){if(lock)return;let ch=0;const t=today();S.r.forEach(r=>{for(let m=r.start.slice(0,7);m<=t.slice(0,7);m=nm(m)){const d=m+"-"+String(Math.min(r.day,dim(m))).padStart(2,"0");if(d>=r.start&&d<=t&&d>(r.last||"")){S.t.push({id:uid(),type:r.type,amt:r.amt,cat:r.cat,d,note:r.note,ts:Date.now(),rid:r.id});r.last=d;ch++}}});if(ch){save();toast(ch+" ta takroriy yozuv qo'shildi")}}
 const recCard=()=>`<div class="g"><h2 style="margin-top:0">🔁 Takroriy to'lovlar</h2>${S.r.map(r=>`<div class="item row" data-rule="${r.id}"><div class="ic" style="--c:${catCol(r.cat)}">${catIc(r.cat)}</div><div class="grow"><b>${esc(r.cat)}</b><span class="mu">Har oy ${r.day}-kuni${r.note?" · "+esc(r.note):""}</span></div><b class="${r.type=="in"?"inc":"exp"}">${r.type=="in"?"+":"−"}${fmt(r.amt)}</b></div>`).join("")||'<div class="empty">Ijara, internet, maosh kabilarni bir marta kiriting — har oy o\'zi qo\'shiladi.</div>'}<button class="btn s" data-act="newrule">+ Takroriy to'lov</button></div>`;
 const bakCard=()=>`<div class="g"><h2 style="margin-top:0">💾 Zaxira nusxa</h2><div class="mu" style="margin-bottom:8px">${S.t.length} yozuv · ${S.g.length} maqsad · ${S.r.length} qoida</div><button class="btn" data-act="bak">JSON yuklab olish</button><button class="btn s" data-act="cpbak">Nusxalash</button><button class="btn s" data-act="imp">Zaxiradan tiklash</button></div>`;
 function recForm(id){const r=S.r.find(x=>x.id==id)||{type:"out",amt:"",cat:"",day:1,note:"",start:today()};let ty=r.type;
@@ -263,16 +290,26 @@ function recForm(id){const r=S.r.find(x=>x.id==id)||{type:"out",amt:"",cat:"",da
   if(id)S.r=S.r.map(x=>x.id==id?n:x);else S.r.push(n);close();runRec();save();render();toast("Saqlandi")};
  if(id)$("#rx").onclick=async()=>{if(await ask("Qoida o'chiriladi (oldingi yozuvlar qoladi). Davom etasizmi?")){S.r=S.r.filter(x=>x.id!=id);save();close();render()}}}
 const cp=(txt,m)=>{const fb=()=>{const ta=document.createElement("textarea");ta.value=txt;document.body.append(ta);ta.select();try{document.execCommand("copy");toast(m)}catch{toast("Nusxalab bo'lmadi.")}ta.remove()};navigator.clipboard?navigator.clipboard.writeText(txt).then(()=>toast(m),fb):fb()};
-const bak=()=>JSON.stringify({app:"myfinance",v:2,at:new Date().toISOString(),data:S});
+const bak=()=>JSON.stringify({app:"myfinance",v:DV,appv:APP_V,at:new Date().toISOString(),data:S});
 function dlBak(){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([bak()],{type:"application/json"}));a.download=`myfinance_${today()}.json`;document.body.append(a);a.click();a.remove();toast("Zaxira fayli tayyorlandi")}
-function restore(txt){try{const j=JSON.parse(txt),o=j&&j.data?j.data:j;if(!valid(o))throw 0;o.r=o.r||[];o.c=o.c||[];S=o;syncCats();lock=false;save();theme();close();runRec();render();toast("Tiklandi ✓")}catch{toast("Fayl noto'g'ri yoki buzilgan.")}}
+function restore(txt){try{const j=JSON.parse(txt),o=j&&j.data?j.data:j;if(!valid(o))throw 0;o.r=o.r||[];o.c=o.c||[];S=o;migrate();syncCats();lock=false;save();theme();close();runRec();render();toast("Tiklandi ✓")}catch{toast("Fayl noto'g'ri yoki buzilgan.")}}
 function impForm(){sheet(`<h2>Zaxiradan tiklash</h2><div class="mu">Joriy ma'lumotlar almashtiriladi.</div><label style="display:block;margin-top:10px">Fayl tanlang</label><input class="in" id="if" type="file" accept=".json,application/json"><label>yoki JSON matnini qo'ying</label><textarea class="in" id="it" rows="5"></textarea><button class="btn" id="ir">Tiklash</button>`);
  $("#if").onchange=e=>{const f=e.target.files[0];if(f)f.text().then(t=>$("#it").value=t)};
  $("#ir").onclick=async()=>{const t=$("#it").value.trim();if(!t)return toast("Fayl yoki matn kiriting.");if(await ask("Joriy ma'lumotlar almashtiriladi. Davom etasizmi?"))restore(t)}}
 function recover(){let b=null;try{b=localStorage.getItem("mf_bak")}catch(_){}
- sheet(`<h2>⚠ Ma'lumotni o'qib bo'lmadi</h2><div class="mu">Eski ma'lumotlar o'chirilmagan. Himoya uchun saqlash vaqtincha o'chirildi.</div><button class="btn" id="r1">Qayta urinish</button>${b?'<button class="btn s" id="r2">Mahalliy nusxadan tiklash</button>':""}<button class="btn s" id="r3">JSON zaxiradan tiklash</button><button class="btn d" id="r4">Yangi boshlash (eski o\'chadi)</button>`);
+ sheet(`<h2>Ma'lumotlar yuklanmadi</h2><div class="mu">Hech narsa yo'qolmagan, ma'lumotlaringiz xavfsiz. Internetni tekshirib, «Qayta urinish»ni bosing.</div><button class="btn" id="r1">Qayta urinish</button>${b?'<button class="btn s" id="r2">Mahalliy nusxadan tiklash</button>':""}<button class="btn s" id="r3">JSON zaxiradan tiklash</button><button class="btn d" id="r4">Yangi boshlash (eski o\'chadi)</button>`);
  $("#r1").onclick=async()=>{await load();close();render();if(lock)recover()};if(b)$("#r2").onclick=()=>restore(b);$("#r3").onclick=impForm;
  $("#r4").onclick=async()=>{if(await ask("Eski ma'lumot butunlay o'chadi. Davom etasizmi?")){lock=false;S=fresh();syncCats();save();close();render()}}}
+const APP_V="3.0.0",DV=3;
+function migrate(){S.r=S.r||[];S.c=S.c||[];S.v=DV}
+function swipe(o){const sh=o.firstChild;let y0=0,dy=0,on=false;
+ sh.addEventListener("touchstart",e=>{if(sh.scrollTop<=0&&e.touches.length==1){y0=e.touches[0].clientY;on=true;dy=0}},{passive:true});
+ sh.addEventListener("touchmove",e=>{if(!on)return;dy=e.touches[0].clientY-y0;if(dy>0){sh.style.transition="none";sh.style.transform=`translateY(${dy}px)`;o.style.opacity=Math.max(.3,1-dy/400)}else{on=false;sh.style.transform=""}},{passive:true});
+ sh.addEventListener("touchend",()=>{if(!on)return;on=false;sh.style.transition="transform .25s";if(dy>110){sh.style.transform="translateY(100%)";setTimeout(close,200)}else{sh.style.transform="";o.style.opacity=""}})}
+try{tg.BackButton.onClick(close)}catch(_){}
+document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("button,.item,.chip,.cc"))try{tg.HapticFeedback.selectionChanged()}catch(_){}});
+(()=>{const b=$("#bg");b.innerHTML="<u></u><u></u><u></u>"+Array.from({length:16},(_,i)=>`<b class="${i%4==0?"rg":""}" style="left:${(i*37+11)%100}%;--s:${3+(i*7)%6}px;--d:${14+(i*5)%14}s;--l:-${(i*3)%14}s;--x:${(i%2?1:-1)*(10+(i*13)%40)}px"></b>`).join("");
+ document.addEventListener("visibilitychange",()=>b.classList.toggle("off",document.hidden))})();
 const EXP0=[...EXP],INC0=[...INC];let CUS={};
 function syncCats(){const c=S.c||[],k=t=>c.filter(x=>x.t==t).map(x=>x.n);EXP.length=0;EXP.push(...EXP0.slice(0,-1),...k("out"),EXP0[EXP0.length-1]);INC.length=0;INC.push(...INC0.slice(0,-1),...k("in"),INC0[INC0.length-1]);CUS=Object.fromEntries(c.map(x=>[x.n,x]))}
 const EM=["🍞","☕","🚌","⛽","🏠","📱","🎮","🐶","✈️","💅","🏋️","🎓","🧾","💳","🛠️","🎁","🍕","🧸","📦","💰"];
@@ -387,8 +424,8 @@ Fayl tanlang¦Выберите файл¦Choose a file
 yoki JSON matnini qo'ying¦или вставьте JSON¦or paste JSON text
 Joriy ma'lumotlar almashtiriladi.¦Текущие данные будут заменены.¦Current data will be replaced.
 Tiklandi ✓¦Восстановлено ✓¦Restored ✓
-⚠ Ma'lumotni o'qib bo'lmadi¦⚠ Не удалось прочитать данные¦⚠ Couldn't read your data
-Eski ma'lumotlar o'chirilmagan. Himoya uchun saqlash vaqtincha o'chirildi.¦Старые данные не удалены. Для защиты сохранение временно отключено.¦Your old data is intact. Saving is paused to protect it.
+Ma'lumotlar yuklanmadi¦Данные не загрузились¦Couldn't load your data
+Hech narsa yo'qolmagan, ma'lumotlaringiz xavfsiz. Internetni tekshirib, «Qayta urinish»ni bosing.¦Ничего не потеряно, данные в безопасности. Проверьте интернет и нажмите «Повторить».¦Nothing is lost, your data is safe. Check your connection and tap “Retry”.
 Qayta urinish¦Повторить¦Retry
 Mahalliy nusxadan tiklash¦Восстановить из локальной копии¦Restore from local copy
 JSON zaxiradan tiklash¦Восстановить из JSON¦Restore from JSON
@@ -432,7 +469,7 @@ const O=new WeakMap();
 function trn(root){const a=[];if(root.nodeType==3)a.push(root);else if(root.nodeType==1||root.nodeType==9){const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode())a.push(n)}
  a.forEach(n=>{const q=n.parentNode;if(q&&/^(SCRIPT|STYLE|TEXTAREA)$/.test(q.nodeName))return;const o=O.has(n)?O.get(n):n.data;O.set(n,o);const t=T(o);if(t!==n.data)n.data=t});
  if(root.querySelectorAll)root.querySelectorAll("[placeholder],[aria-label]").forEach(e=>["placeholder","aria-label"].forEach(k=>{if(e.hasAttribute(k)){const dk="o"+k.replace("-","");if(!e.dataset[dk])e.dataset[dk]=e.getAttribute(k);e.setAttribute(k,T(e.dataset[dk]))}}))}
-function lang0(){if(!S.lang){const u=tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user,c=u&&u.language_code;S.lang=["ru","en"].includes(c)?c:"uz"}document.documentElement.lang=S.lang}
+function lang0(){if(!S.lang){const u=tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user,c=u&&u.language_code;S.lang=prevN>0?"uz":["ru","en"].includes(c)?c:"uz"}document.documentElement.lang=S.lang}
 const gf=v=>v.replace(/\D/g,"").replace(/\B(?=(\d{3})+(?!\d))/g," ");
 const nf=e=>{if(e.id!="rd"&&/^\d{4,}$/.test(e.value))e.value=gf(e.value)};
 addEventListener("input",e=>{const el=e.target;if(el.matches&&el.matches("input[inputmode=numeric]")&&el.id!="rd"){const p=el.selectionStart,d=el.value.slice(0,p).replace(/\D/g,"").length,v=gf(el.value);el.value=v;let n=0,i=0;while(i<v.length&&n<d){if(v[i]!=" ")n++;i++}try{el.setSelectionRange(i,i)}catch(_){}}});
@@ -450,8 +487,8 @@ function catForm(n){const c=S.c.find(x=>x.n==n),o=c||{t:"out",n:"",i:EM[0],c:COL
  if(c)$("#cx").onclick=async()=>{if(await ask("Kategoriya o'chiriladi (yozuvlar qoladi). Davom etasizmi?")){S.c=S.c.filter(x=>x.n!=n);syncCats();save();close();render()}}}
 const V={rep:vRep,home:vHome,list:vList,pig:vPig,tgt:vBud,more:vMore};
 function render(){nav();$("#app").innerHTML=V[tab]();document.querySelectorAll("[data-count]").forEach(countUp);const cfi=$("#cf");if(cfi){cfi.onchange=e=>{cf=e.target.value||cf;render()};$("#ct").onchange=e=>{ct=e.target.value||ct;render()}}const qi=$("#q");if(qi)qi.oninput=e=>{q=e.target.value;const p=e.target.selectionStart;render();const n=$("#q");n.focus();n.setSelectionRange(p,p)}}
-function sheet(h){close();const o=document.createElement("div");o.className="ov";o.innerHTML=`<div class="sheet">${h}</div>`;o.onclick=e=>{if(e.target==o)close()};document.body.append(o)}
-function close(){document.querySelectorAll(".ov").forEach(o=>o.remove())}
+function sheet(h){close();const o=document.createElement("div");o.className="ov";o.innerHTML=`<div class="sheet">${h}</div>`;o.onclick=e=>{if(e.target==o)close()};document.body.append(o);swipe(o);try{tg.BackButton.show()}catch(_){}}
+function close(){document.querySelectorAll(".ov").forEach(o=>o.remove());try{tg.BackButton.hide()}catch(_){}}
 const opt=(a,v)=>a.map(x=>`<option value="${esc(x)}" ${x==v?"selected":""}>${esc(x)}</option>`).join("");
 function txForm(id){const x=S.t.find(t=>t.id==id)||{type:"out",d:today(),cat:"",amt:"",note:""};let ty=x.type,cat=x.cat;
  const draw=()=>{const cs=ty=="in"?INC:EXP;if(!cs.includes(cat))cat=cs[0];$(".tf").dataset.k=ty;$("#tcg").innerHTML=cs.map(c=>`<button type="button" class="cc${c==cat?" on":""}" data-c="${esc(c)}" style="--c:${catCol(c)}"><i>${catIc(c)}</i><span>${esc(c)}</span></button>`).join("");$("#tcg").querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{cat=b.dataset.c;draw()})};
@@ -462,7 +499,7 @@ function txForm(id){const x=S.t.find(t=>t.id==id)||{type:"out",d:today(),cat:"",
  <button class="btn" id="ts">Saqlash</button>${id?'<button class="btn d" id="tx">O\'chirish</button>':""}</div>`);draw();
  document.querySelectorAll("[data-ty]").forEach(b=>b.onclick=()=>{ty=b.dataset.ty;document.querySelectorAll("[data-ty]").forEach(z=>z.classList.toggle("on",z==b));draw()});
  if(!id)setTimeout(()=>$("#ta")&&$("#ta").focus(),280);
- $("#ts").onclick=()=>{const amt=+$("#ta").value.replace(/\s/g,"").replace(",","."),d=$("#td").value;if(!(amt>0))return toast("Summani to'g'ri kiriting.");if(!d)return toast("Sanani tanlang.");
+ $("#ts").onclick=()=>{const amt=+$("#ta").value.replace(/\s/g,"").replace(",","."),d=$("#td").value;if(!(amt>0)){const q=$("#ta");q.classList.remove("shake");void q.offsetWidth;q.classList.add("shake");return toast("Summani to'g'ri kiriting.")}if(!d)return toast("Sanani tanlang.");
   const r={id:id||uid(),type:ty,amt,cat,d,note:$("#tn").value.trim(),ts:x.ts||Date.now(),rid:x.rid};
   if(id)S.t=S.t.map(t=>t.id==id?r:t);else S.t.push(r);save();close();render();toast("Saqlandi")};
  if(id)$("#tx").onclick=async()=>{if(await ask("Bu yozuvni o'chirasizmi?")){S.t=S.t.filter(t=>t.id!=id);save();close();render()}}}
@@ -483,7 +520,7 @@ document.addEventListener("click",async e=>{const t=e.target.closest("[data-tab]
  else if(d.act=="reset"&&await ask("BARCHA ma'lumotlar o'chiriladi. Qaytarib bo'lmaydi. Davom etasizmi?")){S=null;try{localStorage.removeItem("mf_bak")}catch(_){}await kv.del(Array.from({length:prevN},(_,i)=>"mf_"+i).concat("mf_n"));await load();theme();render()}});
 let ly=0;addEventListener("scroll",()=>{const y=scrollY;$("#fab").classList.toggle("hide",y>ly&&y>80);ly=y},{passive:true});
 $("#fab").onclick=()=>{try{tg.HapticFeedback.impactOccurred("medium")}catch(_){}txForm()};
-load().then(()=>{theme();lang0();runRec();render();pg();trn(document.body);if(lock)recover()});
+load().then(()=>{theme();lang0();runRec();render();pg();trn(document.body);if(lock)setTimeout(async()=>{await load();runRec();render();if(lock)recover()},1500)});
 </script>
 </body>
 </html>
