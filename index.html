@@ -12,12 +12,12 @@
       :root {
         --ac: 37 99 235;
         --ink: 15 23 42;
-        --mu: 71 85 105;
+        --mu: 51 65 85;
         --a: #fff;
         --b: #dbeafe;
         --o1: rgba(96, 165, 250, 0.45);
         --o2: rgba(186, 230, 253, 0.7);
-        --g: rgba(255, 255, 255, 0.6);
+        --g: rgba(255, 255, 255, 0.78);
         --gb: rgba(255, 255, 255, 0.9);
         --sh: 0 8px 30px rgba(37, 99, 235, 0.12);
         --f: rgba(255, 255, 255, 0.8);
@@ -1326,7 +1326,7 @@
           transform: translateX(8px);
         }
       }
-      .g {
+      .g:not(.hero) {
         background-image: linear-gradient(
           180deg,
           rgba(255, 255, 255, 0.08),
@@ -1371,6 +1371,43 @@
       }
       .lite #bg {
         display: none;
+      }
+      .tb {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .ib {
+        height: 40px;
+        min-width: 40px;
+        padding: 0 10px;
+        border-radius: 20px;
+        border: 1px solid var(--gb);
+        background: var(--g);
+        color: rgb(var(--ac));
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        font-weight: 800;
+        font-size: 12px;
+        box-shadow: var(--sh);
+        transition:
+          transform 0.12s,
+          background 0.2s;
+      }
+      .ib svg {
+        width: 20px;
+        height: 20px;
+      }
+      .ib.on {
+        background: rgb(var(--ac));
+        color: #fff;
+      }
+      [data-t="dark"] .ib.on {
+        color: #04111f;
+      }
+      .ib:active {
+        transform: scale(0.9);
       }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -1751,7 +1788,7 @@
                   : "Xayrli kech",
           u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user,
           n = (u && u.first_name) || "Do'stim";
-        return `<div class="row sp" style="margin:2px 2px 14px"><div><div class="mu">${g}</div><b style="font-size:21px">${esc(n)}</b></div><div class="av">${esc(n[0].toUpperCase())}</div></div>`;
+        return `<div class="row sp" style="margin:2px 2px 14px"><div><div class="mu">${g}</div><b style="font-size:21px">${esc(n)}</b></div><div class="tb">${tbar()}<div class="av">${esc(n[0].toUpperCase())}</div></div></div>`;
       }
       function spark() {
         const t = today(),
@@ -1829,7 +1866,7 @@
           .join("");
         return `${greet()}<div class="g hero"><div class="row sp"><span class="mu">Umumiy balans</span><span class="mu">Jamg'arma: ${fmt(saved())}</span></div><div class="big" data-count="${s.bal}">${fmt(s.bal)}</div>${spark()}<div class="row"><div class="pill"><u>↓</u><div><span class="mu">Daromad (oy)</span><b>${fmt(s.inc)}</b></div></div><div class="pill"><u>↑</u><div><span class="mu">Xarajat (oy)</span><b>${fmt(s.exp)}</b></div></div></div></div>
  ${warn ? `<div class="g">${warn}</div>` : ""}
- <div class="g"><h2>Xarajatlar tarkibi</h2>${
+ ${payCard()}<div class="g"><h2>Xarajatlar tarkibi</h2>${
    ce.length
      ? `<div class="row"><div class="donut" style="background:conic-gradient(${grad})"><div>${ce.length} ta<br>kategoriya</div></div><div class="grow">${ce
          .slice(0, 5)
@@ -1897,8 +1934,8 @@
         )}</div><div class="mu">Kategoriyani bosib limit belgilang.</div>`;
       }
       function vMore() {
-        return `<h2>Sozlamalar</h2><div class="g"><button class="btn s" data-act="theme">Mavzuni almashtirish (yorug' / qorong'i)</button><div class="mu" style="margin-top:12px">Hisob yaratilgan: ${new Date(S.created).toLocaleDateString("uz-UZ")}<br>Ma'lumotlar ${CS ? "Telegram bulutida (barcha qurilmalaringizda)" : "shu brauzerda (sinov rejimi — Telegram ichida bulutga yoziladi)"} saqlanadi.</div></div>
- ${liteCard()}${langCard()}${catCard()}${recCard()}${bakCard()}<div class="g"><button class="btn d" data-act="reset">Barcha ma'lumotlarni o'chirish</button></div><div class="ver">MY FINANCE · v${APP_V} · data v${S.v}</div>`;
+        return `<h2>Sozlamalar</h2><div class="g"><div class="mu">Hisob yaratilgan: ${new Date(S.created).toLocaleDateString("uz-UZ")}<br>Ma'lumotlar ${CS ? "Telegram bulutida (barcha qurilmalaringizda)" : "shu brauzerda (sinov rejimi — Telegram ichida bulutga yoziladi)"} saqlanadi.</div></div>
+ ${catCard()}${recCard()}${bakCard()}<div class="g"><button class="btn d" data-act="reset">Barcha ma'lumotlarni o'chirish</button></div><div class="ver">MY FINANCE · v${APP_V} · data v${S.v}</div>`;
       }
       let per = "month",
         cf = today(),
@@ -2146,37 +2183,200 @@
         return h;
       };
       const nm = (m) => mshift(m, 1);
+      const FQ = [
+          ["d", "Har kun"],
+          ["w", "Har hafta"],
+          ["m", "Har oy"],
+          ["y", "Har yil"],
+        ],
+        rid = (r, d) => "r" + r.id + "_" + d,
+        gap = (a, b) => (Date.parse(b) - Date.parse(a)) / 864e5;
+      function occ(r, lim) {
+        const o = [],
+          f = r.f || "m",
+          s = r.start,
+          e = r.end && r.end < lim ? r.end : lim;
+        for (let k = 0; k < 1500 && (!r.cnt || o.length < r.cnt); k++) {
+          let d;
+          if (f == "d") d = addD(s, k);
+          else if (f == "w") d = addD(s, 7 * k);
+          else {
+            const m = mshift(s.slice(0, 7), f == "y" ? 12 * k : k);
+            d = m + "-" + String(Math.min(r.day, dim(m))).padStart(2, "0");
+          }
+          if (d > e) break;
+          if (d >= s) o.push(d);
+        }
+        return o;
+      }
+      function due(r) {
+        if (r.pz) return [];
+        const ids = new Set([...S.t.map((t) => t.id), ...(S.x || [])]);
+        return occ(r, today()).filter(
+          (d) =>
+            !(
+              d <= (r.last || "") ||
+              ids.has(rid(r, d)) ||
+              (r.sk || []).includes(d)
+            ),
+        );
+      }
       function runRec() {
         if (lock) return;
         let ch = 0;
-        const t = today();
         S.r.forEach((r) => {
-          for (let m = r.start.slice(0, 7); m <= t.slice(0, 7); m = nm(m)) {
-            const d =
-              m + "-" + String(Math.min(r.day, dim(m))).padStart(2, "0");
-            if (d >= r.start && d <= t && d > (r.last || "")) {
-              S.t.push({
-                id: "r" + r.id + "_" + d,
-                type: r.type,
-                amt: r.amt,
-                cat: r.cat,
-                d,
-                note: r.note,
-                ts: Date.now(),
-                rid: r.id,
-              });
-              r.last = d;
-              ch++;
-            }
-          }
+          if (!r.auto) return;
+          due(r).forEach((d) => {
+            S.t.push({
+              id: rid(r, d),
+              type: r.type,
+              amt: r.amt,
+              cat: r.cat,
+              d,
+              note: r.note,
+              ts: Date.now(),
+              rid: r.id,
+            });
+            if (d > (r.last || "")) r.last = d;
+            ch++;
+          });
         });
         if (ch) {
           save();
           toast(ch + " ta takroriy yozuv qo'shildi");
         }
       }
+      function sugg() {
+        const t = today(),
+          nt = (x) => (x.note || "").toLowerCase().trim(),
+          g = {};
+        S.t.forEach((x) => {
+          if (!x.rid)
+            (g[x.type + "|" + x.cat + "|" + nt(x)] =
+              g[x.type + "|" + x.cat + "|" + nt(x)] || []).push(x);
+        });
+        let best = null;
+        for (const k in g) {
+          if ((S.dz || []).includes(k)) continue;
+          const a = g[k].sort((p, q) => (p.d < q.d ? -1 : 1)),
+            l = a.slice(-3);
+          if (l.length < 3) continue;
+          const x = l[2];
+          if (
+            gap(x.d, t) > 45 ||
+            S.r.some(
+              (r) =>
+                r.type == x.type &&
+                r.cat == x.cat &&
+                (r.note || "").toLowerCase().trim() == nt(x),
+            )
+          )
+            continue;
+          const g1 = gap(l[0].d, l[1].d),
+            g2 = gap(l[1].d, l[2].d),
+            av = (l[0].amt + l[1].amt + l[2].amt) / 3;
+          if (
+            g1 >= 25 &&
+            g1 <= 35 &&
+            g2 >= 25 &&
+            g2 <= 35 &&
+            l.every((y) => Math.abs(y.amt - av) <= av * 0.15) &&
+            (!best || x.d > best.x.d)
+          )
+            best = { k, x, amt: Math.round(av), day: +x.d.slice(8) };
+        }
+        return best;
+      }
+      function payCard() {
+        const t = today(),
+          p = [],
+          u = [],
+          R = S.r.filter((r) => !r.pz);
+        R.forEach((r) => {
+          due(r).forEach((d) => p.push([r, d]));
+          const n = occ(r, addD(t, 7)).find((d) => d > t);
+          if (n) u.push([r, n]);
+        });
+        p.sort((a, b) => (a[1] < b[1] ? -1 : 1));
+        u.sort((a, b) => (a[1] < b[1] ? -1 : 1));
+        const amt = (r) =>
+            `<b class="${r.type == "in" ? "inc" : "exp"}">${r.type == "in" ? "+" : "−"}${fmt(r.amt)}</b>`,
+          ic = (r) =>
+            `<div class="ic" style="--c:${catCol(r.cat)}">${catIc(r.cat)}</div>`,
+          nt = (r) => (r.note ? esc(r.note) + " · " : ""),
+          sg = sugg();
+        const pr = p
+            .map(
+              ([r, d]) =>
+                `<div class="item row">${ic(r)}<div class="grow"><b>${esc(r.cat)}</b><span class="mu">${nt(r)}${dlab(d)}</span></div>${amt(r)}</div><div class="row" style="gap:8px;margin:2px 0 10px"><button class="ib on" data-act="pok" data-k="${r.id}|${d}">To'landi ✓</button><button class="ib" data-act="ped" data-k="${r.id}|${d}">✎</button><button class="ib" data-act="psk" data-k="${r.id}|${d}">O'tkazish</button></div>`,
+            )
+            .join(""),
+          ur = u
+            .map(([r, d]) => {
+              const n = Math.round(gap(t, d));
+              return `<div class="item row" data-rule="${r.id}">${ic(r)}<div class="grow"><b>${esc(r.cat)}</b><span class="mu" style="${n <= 1 ? "color:var(--warn)" : ""}">${nt(r)}${n == 1 ? "Ertaga" : n + " kun qoldi"}</span></div>${amt(r)}</div>`;
+            })
+            .join(""),
+          tot = u.reduce((a, [r]) => a + (r.type == "out" ? r.amt : 0), 0);
+        return `<div class="g"><h2 style="margin-top:0">🔁 Takroriy to'lovlar</h2>${pr ? `<div class="dh">Kutilmoqda</div>${pr}` : ""}${ur ? `<div class="row sp dh"><span>Yaqinda (7 kun)</span><span>${fmt(tot)}</span></div>${ur}` : ""}${!pr && !ur ? `<div class="mu" style="margin-bottom:8px">${R.length ? "Yaqin 7 kunda to'lov yo'q." : "Ijara, internet, maosh kabilarni bir marta kiriting."}</div>` : ""}${sg ? `<div class="mu" style="margin:10px 0 6px">💡 Har oy ~${sg.day}-kuni «${esc(sg.x.cat + (sg.x.note ? " · " + sg.x.note : ""))}» uchun ${fmt(sg.amt)} to'layapsiz. Takroriy qilaymi?</div><div class="row" style="gap:8px"><button class="ib on" data-act="sgy" data-k="${esc(sg.k)}">Qo'shish</button><button class="ib" data-act="sgn" data-k="${esc(sg.k)}">Yo'q</button></div>` : ""}<button class="btn s" data-act="newrule">+ Takroriy to'lov</button>${S.r.length ? '<button class="btn s" data-tab="more">Barcha qoidalar</button>' : ""}</div>`;
+      }
+      function payDo(k, a, amt) {
+        const [i, d] = k.split("|"),
+          r = S.r.find((x) => x.id == i);
+        if (!r) return;
+        if (a == "psk") r.sk = [...(r.sk || []), d];
+        else
+          S.t.push({
+            id: rid(r, d),
+            type: r.type,
+            amt: amt || r.amt,
+            cat: r.cat,
+            d,
+            note: r.note,
+            ts: Date.now(),
+            rid: r.id,
+          });
+        save();
+        close();
+        render();
+        toast(a == "psk" ? "O'tkazib yuborildi" : "Saqlandi");
+      }
+      function payEdit(k) {
+        const r = S.r.find((x) => x.id == k.split("|")[0]);
+        if (!r) return;
+        sheet(
+          `<h2>${esc(r.cat)}</h2><label>Summa (so'm)</label><input class="in" id="pa" inputmode="numeric" value="${r.amt}"><button class="btn" id="pv">To'landi ✓</button>`,
+        );
+        $("#pv").onclick = () => {
+          const a = +$("#pa").value.replace(/\s/g, "");
+          if (!(a > 0)) return toast("Summani kiriting.");
+          payDo(k, "pok", a);
+        };
+      }
+      function sgDo(k, a) {
+        const sg = sugg();
+        if (!sg || sg.k != k) return;
+        if (a == "sgn") S.dz = [...(S.dz || []), k];
+        else {
+          const x = sg.x;
+          S.r.push({
+            id: uid(),
+            type: x.type,
+            amt: sg.amt,
+            cat: x.cat,
+            day: sg.day,
+            start: today(),
+            note: x.note || "",
+            f: "m",
+            auto: false,
+          });
+        }
+        save();
+        render();
+        toast("Saqlandi");
+      }
       const recCard = () =>
-        `<div class="g"><h2 style="margin-top:0">🔁 Takroriy to'lovlar</h2>${S.r.map((r) => `<div class="item row" data-rule="${r.id}"><div class="ic" style="--c:${catCol(r.cat)}">${catIc(r.cat)}</div><div class="grow"><b>${esc(r.cat)}</b><span class="mu">Har oy ${r.day}-kuni${r.note ? " · " + esc(r.note) : ""}</span></div><b class="${r.type == "in" ? "inc" : "exp"}">${r.type == "in" ? "+" : "−"}${fmt(r.amt)}</b></div>`).join("") || "<div class=\"empty\">Ijara, internet, maosh kabilarni bir marta kiriting — har oy o'zi qo'shiladi.</div>"}<button class="btn s" data-act="newrule">+ Takroriy to'lov</button></div>`;
+        `<div class="g"><h2 style="margin-top:0">🔁 Takroriy to'lovlar</h2>${S.r.map((r) => `<div class="item row" data-rule="${r.id}"><div class="ic" style="--c:${catCol(r.cat)}">${catIc(r.cat)}</div><div class="grow"><b>${r.pz ? "⏸ " : ""}${esc(r.cat)}</b><span class="mu">${r.f == "d" ? "Har kun" : r.f == "w" ? "Har hafta" : r.f == "y" ? "Har yil" : "Har oy " + r.day + "-kuni"}${r.note ? " · " + esc(r.note) : ""}</span></div><b class="${r.type == "in" ? "inc" : "exp"}">${r.type == "in" ? "+" : "−"}${fmt(r.amt)}</b></div>`).join("") || '<div class="empty">Ijara, internet, maosh kabilarni bir marta kiriting.</div>'}<button class="btn s" data-act="newrule">+ Takroriy to'lov</button></div>`;
       const bakCard = () =>
         `<div class="g"><h2 style="margin-top:0">💾 Zaxira nusxa</h2><div class="mu" style="margin-bottom:8px">${S.t.length} yozuv · ${S.g.length} maqsad · ${S.r.length} qoida</div><button class="btn" data-act="bak">JSON yuklab olish</button><button class="btn s" data-act="cpbak">Nusxalash</button><button class="btn s" data-act="imp">Zaxiradan tiklash</button></div>`;
       function recForm(id) {
@@ -2187,19 +2387,39 @@
           day: 1,
           note: "",
           start: today(),
+          f: "m",
+          auto: false,
         };
         let ty = r.type;
         const draw = () => {
-          const c = ty == "in" ? INC : EXP;
-          $("#rc").innerHTML = opt(
-            c,
-            r.cat && c.includes(r.cat) ? r.cat : c[0],
-          );
-        };
+            const c = ty == "in" ? INC : EXP;
+            $("#rc").innerHTML = opt(
+              c,
+              r.cat && c.includes(r.cat) ? r.cat : c[0],
+            );
+          },
+          fo = (a, v) =>
+            a
+              .map(
+                ([k, l]) =>
+                  `<option value="${k}" ${k == v ? "selected" : ""}>${l}</option>`,
+              )
+              .join("");
         sheet(
-          `<h2>${id ? "Takroriy to'lov" : "Yangi takroriy to'lov"}</h2><div class="tg"><button data-ty="out" class="${ty == "out" ? "on" : ""}">Xarajat</button><button data-ty="in" class="${ty == "in" ? "on" : ""}">Daromad</button></div><label>Summa (so'm)</label><input class="in" id="ra" inputmode="numeric" value="${r.amt}"><label>Kategoriya</label><select class="in" id="rc"></select><label>Oyning qaysi kuni (1–31)</label><input class="in" id="rd" inputmode="numeric" value="${r.day}"><label>Boshlanish sanasi</label><input class="in" id="rs" type="date" value="${r.start}"><label>Izoh</label><input class="in" id="rn" maxlength="200" value="${esc(r.note)}"><button class="btn" id="rv">Saqlash</button>${id ? '<button class="btn d" id="rx">O\'chirish</button>' : ""}`,
+          `<h2>${id ? "Takroriy to'lov" : "Yangi takroriy to'lov"}</h2><div class="tg"><button data-ty="out" class="${ty == "out" ? "on" : ""}">Xarajat</button><button data-ty="in" class="${ty == "in" ? "on" : ""}">Daromad</button></div><label>Summa (so'm)</label><input class="in" id="ra" inputmode="numeric" value="${r.amt}"><label>Kategoriya</label><select class="in" id="rc"></select><label>Takrorlanishi</label><select class="in" id="rf">${fo(FQ, r.f || "m")}</select><div id="rdw"><label>Oyning qaysi kuni (1–31)</label><input class="in" id="rd" inputmode="numeric" value="${r.day}"></div><label>Boshlanish sanasi</label><input class="in" id="rs" type="date" value="${r.start}"><label>Necha marta (ixtiyoriy)</label><input class="in" id="rk" inputmode="numeric" value="${r.cnt || ""}"><label>Tugash sanasi (ixtiyoriy)</label><input class="in" id="re" type="date" value="${r.end || ""}"><label>Qo'shilish usuli</label><select class="in" id="ru">${fo(
+            [
+              ["0", "Tasdiqlash bilan"],
+              ["1", "Avtomatik"],
+            ],
+            r.auto ? "1" : "0",
+          )}</select><label>Izoh</label><input class="in" id="rn" maxlength="200" value="${esc(r.note)}"><button class="btn" id="rv">Saqlash</button>${id ? `<button class="btn s" id="rp">${r.pz ? "▶ Davom ettirish" : "⏸ Pauza"}</button><button class="btn d" id="rx">O'chirish</button>` : ""}`,
         );
         draw();
+        const fv = () => {
+          $("#rdw").style.display = /[my]/.test($("#rf").value) ? "" : "none";
+        };
+        fv();
+        $("#rf").onchange = fv;
         document.querySelectorAll("[data-ty]").forEach(
           (b) =>
             (b.onclick = () => {
@@ -2212,13 +2432,17 @@
         );
         $("#rv").onclick = () => {
           const amt = +$("#ra").value.replace(/\s/g, ""),
-            day = Math.round(+$("#rd").value),
-            start = $("#rs").value;
+            day = Math.round(+$("#rd").value) || r.day,
+            start = $("#rs").value,
+            f = $("#rf").value,
+            cnt =
+              Math.max(0, Math.round(+$("#rk").value.replace(/\s/g, ""))) || 0;
           if (!(amt > 0)) return toast("Summani kiriting.");
-          if (!(day >= 1 && day <= 31))
+          if (/[my]/.test(f) && !(day >= 1 && day <= 31))
             return toast("Kun 1 dan 31 gacha bo'lsin.");
           if (!start) return toast("Sanani tanlang.");
           const n = {
+            ...r,
             id: id || uid(),
             type: ty,
             amt,
@@ -2226,7 +2450,10 @@
             day,
             start,
             note: $("#rn").value.trim(),
-            last: r.last,
+            f,
+            cnt,
+            end: $("#re").value,
+            auto: $("#ru").value == "1",
           };
           if (id) S.r = S.r.map((x) => (x.id == id ? n : x));
           else S.r.push(n);
@@ -2236,7 +2463,14 @@
           render();
           toast("Saqlandi");
         };
-        if (id)
+        if (id) {
+          $("#rp").onclick = () => {
+            const x = S.r.find((z) => z.id == id);
+            x.pz = !x.pz;
+            save();
+            close();
+            render();
+          };
           $("#rx").onclick = async () => {
             if (
               await ask(
@@ -2250,6 +2484,7 @@
               render();
             }
           };
+        }
       }
       const cp = (txt, m) => {
         const fb = () => {
@@ -2362,6 +2597,12 @@
         S.r = S.r || [];
         S.c = S.c || [];
         S.x = S.x || [];
+        S.r.forEach((r) => {
+          if (!r.f) {
+            r.f = "m";
+            r.auto = true;
+          }
+        });
         S.v = DV;
       }
       function swipe(o) {
@@ -2731,17 +2972,6 @@ Boshqa daromad¦Другой доход¦Other income`
           }),
         ),
       ).observe(document.body, { childList: true, subtree: true });
-      const langCard = () =>
-        `<div class="g"><h2 style="margin-top:0">🌐 Til / Язык / Language</h2><div class="lang">${[
-          ["uz", "O'zbekcha"],
-          ["ru", "Русский"],
-          ["en", "English"],
-        ]
-          .map(
-            ([k, n]) =>
-              `<button data-lang="${k}" class="${S.lang == k ? "on" : ""}">${n}</button>`,
-          )
-          .join("")}</div></div>`;
       const catCard = () =>
         `<div class="g"><h2 style="margin-top:0">🏷️ Kategoriyalar</h2>${S.c.map((c) => `<div class="item row" data-cat="${esc(c.n)}"><div class="ic" style="--c:${c.c}">${c.i}</div><div class="grow"><b>${esc(c.n)}</b><span class="mu">${c.t == "in" ? "Kirim" : "Chiqim"}</span></div></div>`).join("") || "<div class=\"empty\">O'z kategoriyalaringiz yo'q.</div>"}<button class="btn s" data-act="newcat">+ Kategoriya</button></div>`;
       function catForm(n) {
@@ -2909,8 +3139,6 @@ Boshqa daromad¦Другой доход¦Other income`
         if (isNaN(Date.parse(o.created))) o.created = new Date().toISOString();
         return { o, bad };
       }
-      const liteCard = () =>
-        `<div class="g"><button class="btn ${liteOn() ? "" : "s"}" data-act="lite">Yengil rejim (animatsiyasiz)</button><div class="mu" style="margin-top:8px">Sekin telefonlar uchun: fon animatsiyasi va xiralashtirish o'chiriladi.</div></div>`;
       Object.assign(D, {
         "Yengil rejim (animatsiyasiz)": {
           ru: "Лёгкий режим (без анимаций)",
@@ -2950,6 +3178,61 @@ Boshqa daromad¦Другой доход¦Other income`
           }
         } catch (_) {}
       });
+      const SUN =
+          '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+        MOON = '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+        BOLT = '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>';
+      const tbar = () => {
+        const dk = document.documentElement.dataset.t == "dark",
+          ic = (p) =>
+            `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+        return `<button class="ib" data-act="lang" aria-label="Til">${(S.lang || "uz").toUpperCase()}</button><button class="ib ${liteOn() ? "on" : ""}" data-act="lite" aria-label="Yengil rejim">${ic(BOLT)}</button><button class="ib" data-act="theme" aria-label="Mavzu">${ic(dk ? MOON : SUN)}</button>`;
+      };
+      Object.assign(D, {
+        Til: { ru: "Язык", en: "Language" },
+        Mavzu: { ru: "Тема", en: "Theme" },
+        "Yengil rejim": { ru: "Лёгкий режим", en: "Lite mode" },
+      });
+      Object.assign(D, {
+        Kutilmoqda: { ru: "Ожидают", en: "Pending" },
+        "Yaqinda (7 kun)": { ru: "Скоро (7 дней)", en: "Coming up (7 days)" },
+        "To'landi ✓": { ru: "Оплачено ✓", en: "Paid ✓" },
+        "O'tkazish": { ru: "Пропустить", en: "Skip" },
+        "O'tkazib yuborildi": { ru: "Пропущено", en: "Skipped" },
+        Ertaga: { ru: "Завтра", en: "Tomorrow" },
+        "Har kun": { ru: "Каждый день", en: "Daily" },
+        "Har hafta": { ru: "Каждую неделю", en: "Weekly" },
+        "Har oy": { ru: "Каждый месяц", en: "Monthly" },
+        "Har yil": { ru: "Каждый год", en: "Yearly" },
+        Takrorlanishi: { ru: "Повтор", en: "Repeat" },
+        "Necha marta (ixtiyoriy)": {
+          ru: "Сколько раз (необязательно)",
+          en: "How many times (optional)",
+        },
+        "Tugash sanasi (ixtiyoriy)": {
+          ru: "Дата окончания (необязательно)",
+          en: "End date (optional)",
+        },
+        "Qo'shilish usuli": { ru: "Способ добавления", en: "Add mode" },
+        "Tasdiqlash bilan": { ru: "С подтверждением", en: "With confirmation" },
+        Avtomatik: { ru: "Автоматически", en: "Automatic" },
+        "⏸ Pauza": { ru: "⏸ Пауза", en: "⏸ Pause" },
+        "▶ Davom ettirish": { ru: "▶ Продолжить", en: "▶ Resume" },
+        "Barcha qoidalar": { ru: "Все правила", en: "All rules" },
+        "Yo'q": { ru: "Нет", en: "No" },
+        "Yaqin 7 kunda to'lov yo'q.": {
+          ru: "Ближайшие 7 дней платежей нет.",
+          en: "No payments in the next 7 days.",
+        },
+        "Ijara, internet, maosh kabilarni bir marta kiriting.": {
+          ru: "Введите аренду, интернет, зарплату один раз.",
+          en: "Enter rent, internet or salary once.",
+        },
+      });
+      P.push([
+        /^(\d+) kun qoldi$/,
+        { ru: "Осталось дней: $1", en: "$1 days left" },
+      ]);
       const V = {
         rep: vRep,
         home: vHome,
@@ -3228,11 +3511,25 @@ Boshqa daromad¦Другой доход¦Other income`
           } catch (_) {}
           theme();
           render();
+        } else if (d.act == "pok" || d.act == "psk") {
+          payDo(d.k, d.act);
+        } else if (d.act == "ped") {
+          payEdit(d.k);
+        } else if (d.act == "sgy" || d.act == "sgn") {
+          sgDo(d.k, d.act);
+        } else if (d.act == "lang") {
+          const L = ["uz", "ru", "en"];
+          S.lang = L[(L.indexOf(S.lang || "uz") + 1) % 3];
+          document.documentElement.lang = S.lang;
+          save();
+          render();
+          trn(document.body);
         } else if (d.act == "theme") {
           S.th =
             document.documentElement.dataset.t == "dark" ? "light" : "dark";
           save();
           theme();
+          render();
         } else if (
           d.act == "reset" &&
           (await ask(
