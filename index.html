@@ -1425,6 +1425,15 @@
 button.av { border: 0; cursor: pointer; padding: 0; font: inherit; font-weight: 800; }
 .av img { pointer-events: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .av.big { width: 84px; height: 84px; font-size: 34px; margin: 0 auto 14px; }
+.stk { display: block; width: max-content; margin-top: 4px; padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 700; background: rgba(251, 146, 60, 0.18); color: #f97316; }
+.ach { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.ach div { text-align: center; padding: 10px 2px; border-radius: 16px; background: rgb(var(--mu) / 0.1); font-size: 11px; font-weight: 600; cursor: pointer; }
+.ach i { font-style: normal; font-size: 26px; display: block; margin-bottom: 2px; }
+.ach .off { opacity: 0.35; filter: grayscale(1); }
+.obi { font-size: 68px; text-align: center; margin: 8px 0; animation: sp 1.6s ease-in-out infinite alternate; }
+.dots { display: flex; justify-content: center; gap: 6px; margin: 16px 0; }
+.dots i { width: 8px; height: 8px; border-radius: 50%; background: rgb(var(--mu) / 0.3); transition: all 0.3s; }
+.dots i.on { width: 22px; border-radius: 8px; background: rgb(var(--ac)); }
 </style>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
@@ -1811,6 +1820,198 @@ button.av { border: 0; cursor: pointer; padding: 0; font: inherit; font-weight: 
       }
       const txRow = (x) =>
         `<div class="item row" data-edit="${x.id}"><div class="ic" style="--c:${catCol(x.cat)}">${catIc(x.cat)}</div><div class="grow"><b>${esc(x.cat)}${x.rid ? '<em class="rec">🔁</em>' : ""}</b><span class="mu">${esc(x.note || (x.type == "in" ? "Daromad" : "Xarajat"))} · ${x.d}</span></div><b class="${x.type == "in" ? "inc" : "exp"}">${x.type == "in" ? "+" : "−"}${fmt(x.amt)}</b></div>`;
+      const t3 = (u, r, e) => ({ ru: r, en: e }[S && S.lang] || u);
+      const DB = () => S.dbt || (S.dbt = []);
+      const rem = (d) => Math.max(0, d.amt - (d.paid || 0));
+      const WDS = () => ({ ru: ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"], en: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"] }[S.lang] || ["Du", "Se", "Ch", "Pa", "Ju", "Sh", "Ya"]);
+      const WDN = () => ({ ru: ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"], en: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] }[S.lang] || ["Dushanba", "Seshanba", "Chorshanba", "Payshanba", "Juma", "Shanba", "Yakshanba"]);
+      const MS = () => ({ ru: ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"], en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] }[S.lang] || ["Yan", "Fev", "Mar", "Apr", "May", "Iyn", "Iyl", "Avg", "Sen", "Okt", "Noy", "Dek"]);
+      const wdi = (d) => (new Date(d + "T00:00:00Z").getUTCDay() + 6) % 7;
+      /* ---- seriya va yutuqlar ---- */
+      function streaks() {
+        const t = today(), ds = new Set(S.t.map((x) => x.d).filter((d) => d <= t));
+        let cur = 0, d = ds.has(t) ? t : addD(t, -1);
+        while (ds.has(d)) { cur++; d = addD(d, -1); }
+        let best = 0, run = 0, prev = null;
+        [...ds].sort().forEach((x) => { run = prev && addD(prev, 1) == x ? run + 1 : 1; prev = x; if (run > best) best = run; });
+        return { cur, best };
+      }
+      const stkChip = () => { const { cur } = streaks(); return cur > 0 ? `<span class="stk">🔥 ${cur} ${t3("kun ketma-ket", "дн. подряд", "day streak")}</span>` : ""; };
+      const AM = () => ({
+        first: ["🌱", t3("Boshlanish", "Старт", "Start"), t3("Birinchi yozuvni qo'shdingiz", "Вы добавили первую запись", "You added your first entry")],
+        tx100: ["📚", t3("100 yozuv", "100 записей", "100 entries"), t3("100 ta yozuv kiritdingiz", "Вы добавили 100 записей", "You logged 100 entries")],
+        streak7: ["🔥", t3("7 kun", "7 дней", "7 days"), t3("7 kun ketma-ket yozdingiz", "7 дней подряд с записями", "7 days in a row")],
+        streak30: ["⚡", t3("30 kun", "30 дней", "30 days"), t3("30 kun ketma-ket yozdingiz", "30 дней подряд с записями", "30 days in a row")],
+        budget: ["🛡️", t3("Byudjet", "Бюджет", "Budget"), t3("O'tgan oy hamma limitga rioya qildingiz", "В прошлом месяце вы уложились во все лимиты", "You stayed within every limit last month")],
+        goal: ["🎯", t3("Maqsad", "Цель", "Goal"), t3("Jamg'arma maqsadiga erishdingiz", "Вы достигли цели накоплений", "You reached a savings goal")],
+        saver: ["💰", t3("Tejamkor", "Бережливый", "Saver"), t3("Bir oyda daromadning 20% ini tejadingiz", "За месяц вы сэкономили 20% дохода", "You saved 20% of income in a month")],
+        debt: ["🤝", t3("Halol", "Честный", "Settled"), t3("Qarzni to'liq yopdingiz", "Вы полностью закрыли долг", "You fully settled a debt")],
+      });
+      function checkAch() {
+        if (lock || !S || !S.t) return;
+        const first = !S.ach, st = streaks(), pm = mshift(cm(), -1);
+        S.ach = S.ach || {};
+        const lim = Object.entries(S.b || {}).filter(([, v]) => v > 0), by = {};
+        S.t.forEach((x) => { const m = mkey(x.d); if (m >= cm()) return; (by[m] = by[m] || { i: 0, e: 0 })[x.type == "in" ? "i" : "e"] += x.amt; });
+        const ok = {
+          first: S.t.length > 0, tx100: S.t.length >= 100, streak7: st.best >= 7, streak30: st.best >= 30,
+          budget: lim.length > 0 && S.t.some((x) => mkey(x.d) == pm) && lim.every(([c, v]) => sum(S.t.filter((x) => x.type == "out" && x.cat == c && mkey(x.d) == pm)) <= v),
+          goal: S.g.some((g) => g.target > 0 && g.saved >= g.target),
+          saver: Object.values(by).some((v) => v.i > 0 && (v.i - v.e) / v.i >= 0.2),
+          debt: DB().some((d) => d.amt > 0 && (d.paid || 0) >= d.amt),
+        };
+        const nw = Object.keys(ok).filter((k) => ok[k] && !S.ach[k]);
+        nw.forEach((k) => (S.ach[k] = today()));
+        if (nw.length) { save(); if (!first) toast("🏆 " + t3("Yangi yutuq", "Новое достижение", "New achievement") + ": " + AM()[nw[0]][1]); }
+      }
+      const achCard = () => {
+        const m = AM(), st = streaks(), a = S.ach || {}, n = Object.keys(m).filter((k) => a[k]).length;
+        return `<div class="g"><h2 style="margin-top:0">🏆 ${t3("Yutuqlar", "Достижения", "Achievements")}<span class="mu" style="margin-left:auto">${n}/${Object.keys(m).length}</span></h2><div class="mu" style="margin-bottom:10px">🔥 ${st.cur} · ${t3("eng yaxshi seriya", "лучшая серия", "best streak")}: ${st.best}</div><div class="ach">${Object.entries(m).map(([k, [i, nm]]) => `<div data-x="ach:${k}" class="${a[k] ? "" : "off"}"><i>${i}</i>${nm}</div>`).join("")}</div><button class="btn s" data-x="guide" style="margin-top:12px">📖 ${t3("Qo'llanma", "Руководство", "Guide")}</button></div>`;
+      };
+      /* ---- qarzlar daftari ---- */
+      const debtCard = () => {
+        const L = DB(), open = L.filter((d) => rem(d) > 0), t = today();
+        const lent = sum(open.filter((d) => d.type == "lent"), rem), owed = sum(open.filter((d) => d.type == "owed"), rem);
+        const rows = [...L].sort((a, b) => (rem(a) > 0 ? 0 : 1) - (rem(b) > 0 ? 0 : 1) || ((a.due || "9999") < (b.due || "9999") ? -1 : 1)).map((d) => {
+          const done = rem(d) == 0, over = !done && d.due && d.due < t;
+          return `<div class="item row" data-x="debt:${d.id}"><div class="ic" style="--c:${d.type == "lent" ? "#10b981" : "#ef4444"}">${esc(Array.from(d.who || "?")[0].toUpperCase())}</div><div class="grow"><b>${esc(d.who)}</b><span class="mu" style="${over ? "color:var(--warn)" : ""}">${over ? t3("Muddati o'tgan", "Просрочено", "Overdue") + " · " : ""}${d.due ? t3("Muddat", "Срок", "Due") + ": " + d.due : d.d}</span></div><b class="${d.type == "lent" ? "inc" : "exp"}">${done ? t3("Yopilgan", "Закрыт", "Settled") : fmt(rem(d))}</b></div>`;
+        }).join("");
+        return `<div class="g"><h2 style="margin-top:0">🤝 ${t3("Qarzlar daftari", "Долговая книга", "Debts")}</h2><div class="row sp" style="margin-bottom:8px"><div><div class="mu">${t3("Sizga qarz", "Вам должны", "Owed to you")}</div><b class="inc" style="font-size:17px">${fmt(lent)}</b></div><div style="text-align:right"><div class="mu">${t3("Siz qarzdorsiz", "Вы должны", "You owe")}</div><b class="exp" style="font-size:17px">${fmt(owed)}</b></div></div>${rows || `<div class="empty">${t3("Qarz yo'q. Berilgan yoki olingan qarzlarni shu yerda yuriting.", "Долгов нет. Записывайте выданные и взятые долги здесь.", "No debts yet. Keep track of money you lend or borrow here.")}</div>`}<button class="btn s" data-x="newdebt">${t3("+ Qarz qo'shish", "+ Добавить долг", "+ Add debt")}</button></div>`;
+      };
+      function debtForm(id) {
+        const x = DB().find((d) => d.id == id) || { type: "lent", who: "", amt: "", paid: 0, d: today(), due: "", note: "" };
+        let ty = x.type == "lent" ? "in" : "out";
+        const R = (u, r, e) => t3(u, r, e);
+        sheet(`<div class="tf" data-k="${ty}"><h2>${R("Qarz", "Долг", "Debt")}</h2><div class="tg"><button data-ty="in" class="${ty == "in" ? "on" : ""}">${R("Men berdim", "Я дал(а)", "I lent")}</button><button data-ty="out" class="${ty == "out" ? "on" : ""}">${R("Men oldim", "Я взял(а)", "I borrowed")}</button></div><label>${R("Kim", "Кто", "Who")}</label><input class="in" id="dw" maxlength="40" value="${esc(x.who)}"><label>${R("Summa", "Сумма", "Amount")}</label><input class="in" id="da" inputmode="numeric" value="${x.amt}"><div class="c2"><div><label>${R("Sana", "Дата", "Date")}</label><input class="in" id="dd" type="date" value="${x.d}"></div><div><label>${R("Muddat", "Срок", "Due")}</label><input class="in" id="du" type="date" value="${x.due || ""}"></div></div><label>${R("Izoh", "Комментарий", "Note")}</label><input class="in" id="dn" maxlength="120" value="${esc(x.note || "")}">${id ? `<div class="mu" style="margin:4px 0 8px">${R("Qaytarilgan", "Возвращено", "Repaid")}: ${fmt(x.paid || 0)} · ${R("Qoldi", "Осталось", "Left")}: ${fmt(rem(x))}</div><div class="c2" style="margin-bottom:6px"><input class="in" id="dp" inputmode="numeric" placeholder="${R("Qaytarilgan summa", "Сумма возврата", "Repayment")}" style="margin:0"><button class="btn s" id="dpb" style="margin:0">${R("Qo'shish", "Добавить", "Add")}</button></div><button class="btn s" id="dfull">${R("To'liq qaytarildi", "Возвращено полностью", "Fully repaid")}</button>` : ""}<button class="btn" id="dsv">${R("Saqlash", "Сохранить", "Save")}</button>${id ? `<button class="btn d" id="ddl">${R("O'chirish", "Удалить", "Delete")}</button>` : ""}</div>`);
+        document.querySelectorAll("[data-ty]").forEach((b) => (b.onclick = () => { ty = b.dataset.ty; document.querySelectorAll("[data-ty]").forEach((z) => z.classList.toggle("on", z == b)); $(".tf").dataset.k = ty; }));
+        $("#dsv").onclick = () => {
+          const who = $("#dw").value.trim(), amt = +$("#da").value.replace(/\s/g, "");
+          if (!who) return toast(R("Ismni kiriting.", "Введите имя.", "Enter a name."));
+          if (!(amt > 0)) return toast(R("Summani kiriting.", "Введите сумму.", "Enter an amount."));
+          const v = { id: id || uid(), type: ty == "in" ? "lent" : "owed", who, amt, paid: Math.min(amt, x.paid || 0), d: $("#dd").value || today(), due: $("#du").value, note: $("#dn").value.trim() };
+          S.dbt = id ? DB().map((d) => (d.id == id ? v : d)) : [...DB(), v];
+          save(); close(); render(); toast(R("Saqlandi", "Сохранено", "Saved"));
+        };
+        if (id) {
+          $("#dpb").onclick = () => { const v = +$("#dp").value.replace(/\s/g, ""); if (!(v > 0)) return toast(R("Summani kiriting.", "Введите сумму.", "Enter an amount.")); x.paid = Math.min(x.amt, (x.paid || 0) + v); save(); close(); render(); toast(R("Saqlandi", "Сохранено", "Saved")); };
+          $("#dfull").onclick = () => { x.paid = x.amt; save(); close(); render(); toast(R("Saqlandi", "Сохранено", "Saved")); };
+          $("#ddl").onclick = async () => { if (await ask(R("Qarz o'chiriladi. Davom etasizmi?", "Долг будет удалён. Продолжить?", "The debt will be deleted. Continue?"))) { S.dbt = DB().filter((d) => d.id != id); save(); close(); render(); } };
+        }
+      }
+      /* ---- tahlil kartalari ---- */
+      function wdCard() {
+        const [f, t] = range(), out = S.t.filter((x) => x.type == "out" && x.d >= f && x.d <= t);
+        if (!out.length) return "";
+        const tot = Array(7).fill(0), cnt = Array(7).fill(0);
+        let d = f, k = 0;
+        while (d <= t && k++ < 800) { cnt[wdi(d)]++; d = addD(d, 1); }
+        out.forEach((x) => (tot[wdi(x.d)] += x.amt));
+        const av = tot.map((v, i) => (cnt[i] ? v / cnt[i] : 0)), mx = Math.max(...av) || 1, top = av.indexOf(Math.max(...av));
+        return `<div class="g"><h2>${t3("Haftaning kunlari bo'yicha", "По дням недели", "By weekday")}</h2><div style="display:flex;align-items:flex-end;gap:6px;height:120px">${av.map((v, i) => `<div style="flex:1;height:100%;display:flex;align-items:flex-end"><i class="gr" style="flex:1;height:${Math.max(3, (v / mx) * 100)}%;background:${i == top ? "var(--bad)" : "rgb(var(--ac) / .55)"};border-radius:6px 6px 0 0"></i></div>`).join("")}</div><div style="display:flex;gap:6px;margin-top:4px">${WDS().map((l, i) => `<div class="mu" style="flex:1;text-align:center;font-size:11px;${i == top ? "color:var(--bad);font-weight:700" : ""}">${l}</div>`).join("")}</div><div class="mu" style="margin-top:8px">${t3("Eng ko'p sarflaydigan kuningiz", "Самый затратный день", "Your priciest day")}: <b>${WDN()[top]}</b> · ${fmt(av[top])} / ${t3("kun", "день", "day")}</div></div>`;
+      }
+      function moCard() {
+        if (!S.t.length) return "";
+        const D = [...Array(6)].map((_, i) => { const m = mshift(cm(), i - 5), a = S.t.filter((x) => mkey(x.d) == m); return { m, i: sum(a.filter((x) => x.type == "in")), e: sum(a.filter((x) => x.type == "out")) }; });
+        const mx = Math.max(...D.map((v) => Math.max(v.i, v.e))) || 1, hh = (v) => `height:${v ? Math.max(3, (v / mx) * 100) : 0}%`;
+        return `<div class="g"><h2>${t3("Oxirgi 6 oy", "Последние 6 месяцев", "Last 6 months")}</h2><div style="display:flex;align-items:flex-end;gap:8px;height:120px">${D.map((v) => `<div style="flex:1;height:100%;display:flex;align-items:flex-end;gap:2px"><i class="gr" style="flex:1;${hh(v.i)};background:var(--ok);border-radius:4px 4px 0 0"></i><i class="gr" style="flex:1;${hh(v.e)};background:var(--bad);border-radius:4px 4px 0 0"></i></div>`).join("")}</div><div style="display:flex;gap:8px;margin-top:4px">${D.map((v) => `<div class="mu" style="flex:1;text-align:center;font-size:11px">${MS()[+v.m.slice(5) - 1]}</div>`).join("")}</div><div class="row mu" style="gap:14px;margin-top:8px"><span><i style="display:inline-block;width:9px;height:9px;border-radius:3px;background:var(--ok)"></i> ${t3("Daromad", "Доход", "Income")}</span><span><i style="display:inline-block;width:9px;height:9px;border-radius:3px;background:var(--bad)"></i> ${t3("Xarajat", "Расход", "Expense")}</span></div></div>`;
+      }
+      /* ---- hisobotni rasm / PDF qilib ulashish ---- */
+      const shortN = (n) => (n >= 1e6 ? (n / 1e6).toFixed(1).replace(/\.0$/, "") + " M" : n >= 1e3 ? Math.round(n / 1e3) + " K" : String(Math.round(n)));
+      function repCanvas(m) {
+        const W = 1080, H = 1350, c = document.createElement("canvas");
+        c.width = W; c.height = H;
+        const x = c.getContext("2d"), F = (w, z) => (x.font = `${w} ${z}px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif`);
+        const g = x.createLinearGradient(0, 0, W, H);
+        g.addColorStop(0, "#1e3a8a"); g.addColorStop(0.55, "#2563eb"); g.addColorStop(1, "#06b6d4");
+        x.fillStyle = g; x.fillRect(0, 0, W, H);
+        [[900, 150, 420, 0.22], [100, 1250, 380, 0.14]].forEach(([X, Y, Rr, a]) => { const r = x.createRadialGradient(X, Y, 0, X, Y, Rr); r.addColorStop(0, `rgba(255,255,255,${a})`); r.addColorStop(1, "rgba(255,255,255,0)"); x.fillStyle = r; x.fillRect(0, 0, W, H); });
+        const rr = (X, Y, w, h, r, f) => { x.beginPath(); if (x.roundRect) x.roundRect(X, Y, w, h, r); else x.rect(X, Y, w, h); x.fillStyle = f; x.fill(); };
+        const P = S.t.filter((z) => mkey(z.d) == m), inc = sum(P.filter((z) => z.type == "in")), exp = sum(P.filter((z) => z.type == "out")), cats = grp(P.filter((z) => z.type == "out")).slice(0, 5);
+        const u = tgUser(), nm = S.name || (u && u.first_name) || "", cur = { ru: "сум", en: "UZS" }[S.lang] || "so'm";
+        x.textBaseline = "alphabetic"; x.fillStyle = "#fff"; x.textAlign = "left"; F(800, 60); x.fillText("Finora", 80, 130);
+        x.textAlign = "right"; F(600, 34); x.fillStyle = "rgba(255,255,255,.85)"; x.fillText(nm, W - 80, 126);
+        x.textAlign = "left"; F(800, 76); x.fillStyle = "#fff"; x.fillText(T(MN[+m.slice(5) - 1]) + " " + m.slice(0, 4), 80, 250);
+        [[80, t3("Kirim", "Доход", "Income"), inc, "#6ee7b7"], [395, t3("Chiqim", "Расход", "Expense"), exp, "#fca5a5"], [710, t3("Sof", "Итог", "Net"), inc - exp, "#ffffff"]].forEach(([X, lab, v, col]) => {
+          rr(X, 310, 290, 170, 32, "rgba(255,255,255,.16)");
+          x.fillStyle = "rgba(255,255,255,.8)"; F(600, 28); x.fillText(lab, X + 26, 360);
+          x.fillStyle = col; F(800, 50); x.fillText((v < 0 ? "−" : "") + shortN(Math.abs(v)), X + 26, 428);
+          x.fillStyle = "rgba(255,255,255,.65)"; F(600, 24); x.fillText(cur, X + 26, 462);
+        });
+        rr(60, 530, 960, 640, 44, "rgba(255,255,255,.14)");
+        x.fillStyle = "#fff"; F(800, 40); x.fillText(t3("Eng ko'p xarajatlar", "Топ расходов", "Top expenses"), 100, 600);
+        if (!cats.length) { F(600, 32); x.fillStyle = "rgba(255,255,255,.7)"; x.fillText("—", 100, 680); }
+        cats.forEach(([cn, v], i) => {
+          const y = 650 + i * 100;
+          x.fillStyle = "#fff"; F(600, 32); x.textAlign = "left"; x.fillText(T(cn).slice(0, 22), 100, y + 20);
+          x.textAlign = "right"; F(800, 32); x.fillText(fmt(v), 980, y + 20);
+          rr(100, y + 38, 880, 18, 9, "rgba(255,255,255,.2)"); rr(100, y + 38, Math.max(18, (880 * v) / exp), 18, 9, "#fff");
+        });
+        const tot = Array(7).fill(0); P.filter((z) => z.type == "out").forEach((z) => (tot[wdi(z.d)] += z.amt));
+        x.textAlign = "left"; x.fillStyle = "rgba(255,255,255,.92)"; F(600, 34);
+        if (exp) x.fillText(t3("Eng ko'p sarflaydigan kun", "Самый затратный день", "Priciest day") + ": " + WDN()[tot.indexOf(Math.max(...tot))], 80, 1240);
+        x.fillText("🔥 " + streaks().cur + " " + t3("kun ketma-ket", "дн. подряд", "day streak"), 80, 1295);
+        x.textAlign = "right"; F(600, 26); x.fillStyle = "rgba(255,255,255,.6)"; x.fillText("Finora · v" + APP_V, W - 80, 1295);
+        return c;
+      }
+      function pdfFrom(c) {
+        const j = atob(c.toDataURL("image/jpeg", 0.92).split(",")[1]), n = j.length, b = new Uint8Array(n);
+        for (let i = 0; i < n; i++) b[i] = j.charCodeAt(i);
+        const W = c.width, H = c.height, pw = 595, ph = Math.round((595 * H) / W), enc = (z) => new TextEncoder().encode(z), parts = [], off = [];
+        let len = 0;
+        const add = (u8) => { parts.push(u8); len += u8.length; }, obj = (z) => { off.push(len); add(enc(z)); };
+        add(enc("%PDF-1.4\n"));
+        obj("1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n");
+        obj("2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n");
+        obj(`3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 ${pw} ${ph}]/Resources<</XObject<</I 4 0 R>>>>/Contents 5 0 R>>endobj\n`);
+        off.push(len); add(enc(`4 0 obj<</Type/XObject/Subtype/Image/Width ${W}/Height ${H}/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length ${n}>>stream\n`)); add(b); add(enc("\nendstream endobj\n"));
+        const cs = `q ${pw} 0 0 ${ph} 0 0 cm /I Do Q`;
+        obj(`5 0 obj<</Length ${cs.length}>>stream\n${cs}\nendstream endobj\n`);
+        const xr = len; let tx = "xref\n0 6\n0000000000 65535 f \n";
+        off.forEach((o) => (tx += String(o).padStart(10, "0") + " 00000 n \n"));
+        tx += `trailer<</Size 6/Root 1 0 R>>\nstartxref\n${xr}\n%%EOF`; add(enc(tx));
+        return new Blob(parts, { type: "application/pdf" });
+      }
+      async function shareFile(blob, name) {
+        const f = new File([blob], name, { type: blob.type });
+        try {
+          if (navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: "Finora" }); return; }
+        } catch (e) { if (e && e.name == "AbortError") return; }
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob); a.download = name; document.body.append(a); a.click(); a.remove();
+        toast(t3("Fayl tayyorlandi", "Файл готов", "File ready"));
+      }
+      function shareRep() {
+        const m = vm, c = repCanvas(m);
+        sheet(`<h2>${t3("Oylik hisobot", "Отчёт за месяц", "Monthly report")}</h2><img src="${c.toDataURL("image/png")}" alt="" style="width:100%;border-radius:18px;margin-bottom:10px"><button class="btn" id="sp1">${t3("Rasm sifatida ulashish", "Поделиться как фото", "Share as image")}</button><button class="btn s" id="sp2">${t3("PDF sifatida ulashish", "Поделиться как PDF", "Share as PDF")}</button><div class="mu" style="margin-top:8px;text-align:center">${t3("Ulashish ishlamasa, rasmni uzoq bosib saqlang.", "Если не открывается, удерживайте картинку, чтобы сохранить.", "If sharing doesn't work, long-press the image to save it.")}</div>`);
+        $("#sp1").onclick = () => c.toBlob((b) => shareFile(b, `finora_${m}.png`), "image/png");
+        $("#sp2").onclick = () => shareFile(pdfFrom(c), `finora_${m}.pdf`);
+      }
+      /* ---- qo'llanma ---- */
+      function guide(done) {
+        let i = 0;
+        const sl = [
+          ["💎", t3("Finora'ga xush kelibsiz", "Добро пожаловать в Finora", "Welcome to Finora"), t3("Kirim va chiqimlaringizni bir joyda yuriting. «+» tugmasi bilan yozuv qo'shing.", "Ведите доходы и расходы в одном месте. Добавляйте записи кнопкой «+».", "Track income and expenses in one place. Add entries with the “+” button.")],
+          ["🎯", t3("Byudjet va maqsadlar", "Бюджет и цели", "Budgets and goals"), t3("Kategoriyalarga limit qo'ying, jamg'arma maqsadlari yarating va qarzlaringizni yuriting.", "Задавайте лимиты по категориям, копите на цели и ведите долги.", "Set category limits, save toward goals and track debts.")],
+          ["🔥", t3("Odat qiling", "Сделайте привычкой", "Make it a habit"), t3("Har kun yozing, seriya va yutuqlar yig'ing. Hisobotni rasm yoki PDF qilib ulashing.", "Записывайте каждый день, собирайте серии и достижения. Делитесь отчётом картинкой или PDF.", "Log daily, build streaks and unlock achievements. Share your report as an image or PDF.")],
+        ];
+        const draw = () => {
+          const [ic, tt, dd] = sl[i], last = i == sl.length - 1;
+          $(".gd").innerHTML = `<div class="obi">${ic}</div><h2 style="justify-content:center">${tt}</h2><p class="mu" style="text-align:center;line-height:1.5;margin:0 8px">${dd}</p><div class="dots">${sl.map((_, k) => `<i class="${k == i ? "on" : ""}"></i>`).join("")}</div><button class="btn" id="gn">${last ? t3("Boshlash", "Начать", "Start") : t3("Keyingisi", "Далее", "Next")}</button>${last ? "" : `<button class="btn s" id="gs">${t3("O'tkazib yuborish", "Пропустить", "Skip")}</button>`}`;
+          $("#gn").onclick = () => { if (!last) { i++; draw(); } else { close(); if (done) done(); } };
+          if (!last) $("#gs").onclick = () => { close(); if (done) done(); };
+        };
+        sheet('<div class="gd"></div>'); draw();
+      }
+      document.addEventListener("click", (e) => {
+        const b = e.target.closest && e.target.closest("[data-x]");
+        if (!b) return;
+        const [a, id] = b.dataset.x.split(":");
+        if (a == "debt") debtForm(id);
+        else if (a == "newdebt") debtForm();
+        else if (a == "share") shareRep();
+        else if (a == "guide") guide();
+        else if (a == "ach") toast((S.ach && S.ach[id] ? "✅ " : "🔒 ") + AM()[id][2]);
+      });
       const tgUser = () => tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
       const avatar = (n, u, big, ph = S.photo) => {
         const t = big ? "div" : "button", src = ph || (u && u.photo_url);
@@ -1866,7 +2067,7 @@ button.av { border: 0; cursor: pointer; padding: 0; font: inherit; font-weight: 
                   : "Xayrli kech",
           u = tgUser(),
           n = S.name || (u && u.first_name) || "Do'stim";
-        return `<div class="row sp" style="margin:2px 2px 14px"><div><div class="mu">${g}</div><b style="font-size:21px">${esc(n)}</b></div><div class="tb">${tbar()}${avatar(n, u)}</div></div>`;
+        return `<div class="row sp" style="margin:2px 2px 14px"><div><div class="mu">${g}</div><b style="font-size:21px">${esc(n)}</b>${stkChip()}</div><div class="tb">${tbar()}${avatar(n, u)}</div></div>`;
       }
       function spark() {
         const t = today(),
@@ -2013,7 +2214,7 @@ button.av { border: 0; cursor: pointer; padding: 0; font: inherit; font-weight: 
       }
       function vMore() {
         return `<h2>Sozlamalar</h2><div class="g"><div class="mu">Hisob yaratilgan: ${new Date(S.created).toLocaleDateString("uz-UZ")}<br>Ma'lumotlar ${CS ? "Telegram bulutida (barcha qurilmalaringizda)" : "shu brauzerda (sinov rejimi — Telegram ichida bulutga yoziladi)"} saqlanadi.</div></div>
- ${catCard()}${recCard()}${bakCard()}<div class="g"><button class="btn d" data-act="reset">Barcha ma'lumotlarni o'chirish</button></div><div class="ver">Finora · v${APP_V} · data v${S.v}</div>`;
+ ${debtCard()}${achCard()}${catCard()}${recCard()}${bakCard()}<div class="g"><button class="btn d" data-act="reset">Barcha ma'lumotlarni o'chirish</button></div><div class="ver">Finora · v${APP_V} · data v${S.v}</div>`;
       }
       let per = "month",
         cf = today(),
@@ -2121,7 +2322,7 @@ button.av { border: 0; cursor: pointer; padding: 0; font: inherit; font-weight: 
  <div class="c2"><div class="g"><h1>Kunlik o'rtacha xarajat</h1><b class="sv">${fmt(exp / days)}</b></div><div class="g"><h1>Jamg'arish darajasi</h1><b class="sv">${inc > 0 ? Math.round((net / inc) * 100) + "%" : "—"}</b></div></div>
  ${ce.length ? `<div class="g"><h2>Xarajatlar tarkibi</h2>${pie(ce, exp)}<div style="margin-top:10px">${catBars(ce, exp, "var(--bad)")}</div></div>` : ""}
  ${ci.length ? `<div class="g"><h2>Daromad manbalari</h2>${catBars(ci, inc, "var(--ok)")}</div>` : ""}
- <div class="g"><h2>Eksport</h2><button class="btn" data-act="exp">Excel uchun yuklab olish (CSV)</button><button class="btn s" data-act="cp">Jadvalni nusxalash</button><div class="mu" style="margin-top:8px">Telegram ichida fayl yuklanmasa, «nusxalash» ni bosib, Excel yoki Google Sheets'ga qo'ying.</div></div>`
+ ${wdCard()}${moCard()}<div class="g"><button class="btn" data-x="share">${t3("📤 Oylik hisobotni ulashish","📤 Поделиться отчётом за месяц","📤 Share monthly report")}</button></div><div class="g"><h2>Eksport</h2><button class="btn" data-act="exp">Excel uchun yuklab olish (CSV)</button><button class="btn s" data-act="cp">Jadvalni nusxalash</button><div class="mu" style="margin-top:8px">Telegram ichida fayl yuklanmasa, «nusxalash» ni bosib, Excel yoki Google Sheets'ga qo'ying.</div></div>`
      : '<div class="g empty">Bu davrda tranzaksiya yo\'q.</div>'
  }`;
       }
@@ -2669,12 +2870,13 @@ button.av { border: 0; cursor: pointer; padding: 0; font: inherit; font-weight: 
           }
         };
       }
-      const APP_V = "3.3.0",
+      const APP_V = "3.4.0",
         DV = 3;
       function migrate() {
         S.r = S.r || [];
         S.c = S.c || [];
         S.x = S.x || [];
+        S.dbt = S.dbt || [];
         S.r.forEach((r) => {
           if (!r.f) {
             r.f = "m";
@@ -3327,6 +3529,7 @@ Boshqa daromad¦Другой доход¦Other income`
         more: vMore,
       };
       function render() {
+        checkAch();
         nav();
         $("#app").innerHTML = V[tab]();
         document.querySelectorAll("[data-count]").forEach(countUp);
@@ -3660,11 +3863,18 @@ Boshqa daromad¦Другой доход¦Other income`
         render();
         pg();
         trn(document.body);
-        if (!lock && !S.name && !S.asked && !tgUser()) {
-          S.asked = 1;
+        const askName = () => {
+          if (!S.name && !S.asked && !tgUser()) {
+            S.asked = 1;
+            save();
+            setTimeout(profForm, 300);
+          }
+        };
+        if (!lock && !S.ob) {
+          S.ob = 1;
           save();
-          setTimeout(profForm, 700);
-        }
+          if (!S.t.length && !S.g.length) setTimeout(() => guide(askName), 700);
+        } else if (!lock) askName();
         if (lock)
           setTimeout(async () => {
             await load();
