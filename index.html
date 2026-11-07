@@ -1,12 +1,15 @@
 <!doctype html>
 <html lang="uz">
   <head>
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#0a1330" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
     <meta charset="utf-8" />
     <meta
       name="viewport"
       content="width=device-width,initial-scale=1,viewport-fit=cover"
     />
-    <title>MY FINANCE</title>
+    <title>Finora</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
       :root {
@@ -1409,7 +1412,20 @@
       .ib:active {
         transform: scale(0.9);
       }
-    </style>
+    /* eski Android WebView uchun zaxira ranglar (color-mix yo'q bo'lsa) */
+@supports not (background: color-mix(in srgb, red 50%, blue)) {
+  nav { background: var(--f); }
+  body::after { background: linear-gradient(transparent, var(--b)); }
+  .ic { background: rgb(var(--ac) / 0.14); }
+  .cc.on { background: rgb(var(--ac) / 0.18); border-color: rgb(var(--ac)); }
+  .item > b.inc { background: rgba(16, 185, 129, 0.14); }
+  .item > b.exp { background: rgba(239, 68, 68, 0.14); }
+}
+.av { position: relative; }
+button.av { border: 0; cursor: pointer; padding: 0; font: inherit; font-weight: 800; }
+.av img { pointer-events: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.av.big { width: 84px; height: 84px; font-size: 34px; margin: 0 auto 14px; }
+</style>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap"
@@ -1419,7 +1435,7 @@
   <body>
     <div id="bg" aria-hidden="true"></div>
     <div id="app">
-      <div class="splash"><i>💎</i><b>MY FINANCE</b></div>
+      <div class="splash"><i>💎</i><b>Finora</b></div>
     </div>
     <div id="toast" role="status"></div>
     <button class="fab" id="fab" aria-label="Tranzaksiya qo'shish">
@@ -1617,9 +1633,28 @@
         toast.h = setTimeout(() => (t.style.display = "none"), 2400);
       };
       const ask = (m) =>
-        new Promise((r) =>
-          tg && tg.showConfirm ? tg.showConfirm(T(m), r) : r(confirm(T(m))),
-        );
+        new Promise((r) => {
+          const t = T(m);
+          try {
+            if (tg && tg.initData && tg.isVersionAtLeast && tg.isVersionAtLeast("6.2"))
+              return tg.showConfirm(t, r);
+          } catch (_) {}
+          const o = document.createElement("div");
+          o.className = "ov";
+          o.style.alignItems = "center";
+          o.style.padding = "24px";
+          o.innerHTML = `<div class="sheet" style="border-radius:24px;text-align:center"><p style="font-size:16px;font-weight:600;margin:6px 0 16px">${esc(t)}</p><div class="c2"><button class="btn s" id="cn_">✕</button><button class="btn" id="cy_">OK</button></div></div>`;
+          document.body.append(o);
+          const d = (v) => {
+            o.remove();
+            r(v);
+          };
+          o.querySelector("#cy_").onclick = () => d(true);
+          o.querySelector("#cn_").onclick = () => d(false);
+          o.onclick = (e) => {
+            if (e.target === o) d(false);
+          };
+        });
       let lock = false;
       const fresh = () => ({
         v: DV,
@@ -1776,6 +1811,49 @@
       }
       const txRow = (x) =>
         `<div class="item row" data-edit="${x.id}"><div class="ic" style="--c:${catCol(x.cat)}">${catIc(x.cat)}</div><div class="grow"><b>${esc(x.cat)}${x.rid ? '<em class="rec">🔁</em>' : ""}</b><span class="mu">${esc(x.note || (x.type == "in" ? "Daromad" : "Xarajat"))} · ${x.d}</span></div><b class="${x.type == "in" ? "inc" : "exp"}">${x.type == "in" ? "+" : "−"}${fmt(x.amt)}</b></div>`;
+      const tgUser = () => tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+      const avatar = (n, u, big, ph = S.photo) => {
+        const t = big ? "div" : "button", src = ph || (u && u.photo_url);
+        return `<${t} class="av${big ? " big" : ""}" ${big ? "" : 'data-act="profile" aria-label="Profil"'}>${esc(Array.from(n)[0].toUpperCase())}${src ? `<img src="${esc(src)}" alt="" onerror="this.remove()">` : ""}</${t}>`;
+      };
+      const fitPhoto = (f) =>
+        new Promise((ok, no) => {
+          const url = URL.createObjectURL(f), im = new Image();
+          im.onload = () => {
+            const N = 160, c = document.createElement("canvas");
+            c.width = c.height = N;
+            const m = Math.min(im.width, im.height);
+            c.getContext("2d").drawImage(im, (im.width - m) / 2, (im.height - m) / 2, m, m, 0, 0, N, N);
+            URL.revokeObjectURL(url);
+            let q = 0.75, d = c.toDataURL("image/jpeg", q);
+            while (d.length > 14000 && q > 0.3) { q -= 0.1; d = c.toDataURL("image/jpeg", q); }
+            ok(d);
+          };
+          im.onerror = () => no();
+          im.src = url;
+        });
+      function profForm() {
+        const u = tgUser(), tn = u && u.first_name, n = S.name || tn || "";
+        let ph = S.photo || null;
+        const nm = () => $("#pn").value.trim() || tn || "?";
+        const pv = () => ($(".av.big").outerHTML = avatar(nm(), u, true, ph));
+        sheet(`<h2>Profil</h2>${avatar(n || "?", u, true, ph)}<div class="c2" style="margin-bottom:10px"><button class="btn s" id="pp" style="margin:0">📷 Rasm tanlash</button><button class="btn s" id="px" style="margin:0">Rasmni olib tashlash</button></div><input type="file" id="pf" accept="image/*" hidden><label>Ismingiz</label><input class="in" id="pn" maxlength="24" autocomplete="off" placeholder="${esc(tn || "Do'stim")}" value="${esc(S.name || "")}"><div class="mu" style="margin:-2px 0 10px">A'zo bo'lgan sana: ${esc((S.created || "").slice(0, 10) || "—")} · ${S.t.length} yozuv</div><button class="btn" id="ps">Saqlash</button>${S.name && tn ? '<button class="btn s" id="pr">Telegram ismini ishlatish</button>' : ""}`);
+        $("#pp").onclick = () => $("#pf").click();
+        $("#pf").onchange = async (e) => {
+          const f = e.target.files[0];
+          if (!f) return;
+          try { ph = await fitPhoto(f); pv(); } catch (_) { toast("Rasm o'qib bo'lmadi."); }
+        };
+        $("#px").onclick = () => { ph = null; pv(); };
+        $("#pn").oninput = pv;
+        $("#ps").onclick = () => {
+          const v = $("#pn").value.trim();
+          if (v) S.name = v; else delete S.name;
+          if (ph) S.photo = ph; else delete S.photo;
+          save(); close(); render(); toast("Saqlandi");
+        };
+        if (S.name && tn) $("#pr").onclick = () => { delete S.name; save(); close(); render(); toast("Saqlandi"); };
+      }
       function greet() {
         const h = new Date().getHours(),
           g =
@@ -1786,9 +1864,9 @@
                 : h < 18
                   ? "Xayrli kun"
                   : "Xayrli kech",
-          u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user,
-          n = (u && u.first_name) || "Do'stim";
-        return `<div class="row sp" style="margin:2px 2px 14px"><div><div class="mu">${g}</div><b style="font-size:21px">${esc(n)}</b></div><div class="tb">${tbar()}<div class="av">${esc(n[0].toUpperCase())}</div></div></div>`;
+          u = tgUser(),
+          n = S.name || (u && u.first_name) || "Do'stim";
+        return `<div class="row sp" style="margin:2px 2px 14px"><div><div class="mu">${g}</div><b style="font-size:21px">${esc(n)}</b></div><div class="tb">${tbar()}${avatar(n, u)}</div></div>`;
       }
       function spark() {
         const t = today(),
@@ -1935,7 +2013,7 @@
       }
       function vMore() {
         return `<h2>Sozlamalar</h2><div class="g"><div class="mu">Hisob yaratilgan: ${new Date(S.created).toLocaleDateString("uz-UZ")}<br>Ma'lumotlar ${CS ? "Telegram bulutida (barcha qurilmalaringizda)" : "shu brauzerda (sinov rejimi — Telegram ichida bulutga yoziladi)"} saqlanadi.</div></div>
- ${catCard()}${recCard()}${bakCard()}<div class="g"><button class="btn d" data-act="reset">Barcha ma'lumotlarni o'chirish</button></div><div class="ver">MY FINANCE · v${APP_V} · data v${S.v}</div>`;
+ ${catCard()}${recCard()}${bakCard()}<div class="g"><button class="btn d" data-act="reset">Barcha ma'lumotlarni o'chirish</button></div><div class="ver">Finora · v${APP_V} · data v${S.v}</div>`;
       }
       let per = "month",
         cf = today(),
@@ -2591,7 +2669,7 @@
           }
         };
       }
-      const APP_V = "3.0.0",
+      const APP_V = "3.3.0",
         DV = 3;
       function migrate() {
         S.r = S.r || [];
@@ -2770,6 +2848,13 @@ Xayrli kun¦Добрый день¦Good afternoon
 Xayrli kech¦Добрый вечер¦Good evening
 Xayrli tun¦Доброй ночи¦Good night
 Do'stim¦Друг¦Friend
+Profil¦Профиль¦Profile
+Ismingiz¦Ваше имя¦Your name
+📷 Rasm tanlash¦📷 Выбрать фото¦📷 Choose photo
+Rasmni olib tashlash¦Убрать фото¦Remove photo
+Rasm o'qib bo'lmadi.¦Не удалось прочитать фото.¦Couldn't read the photo.
+A'zo bo'lgan sana¦Дата регистрации¦Member since
+Telegram ismini ishlatish¦Использовать имя из Telegram¦Use Telegram name
 Jamg'arma maqsadlari¦Цели накоплений¦Savings goals
 Yangi maqsad¦Новая цель¦New goal
 + Yangi maqsad¦+ Новая цель¦+ New goal
@@ -3517,6 +3602,8 @@ Boshqa daromad¦Другой доход¦Other income`
           payEdit(d.k);
         } else if (d.act == "sgy" || d.act == "sgn") {
           sgDo(d.k, d.act);
+        } else if (d.act == "profile") {
+          profForm();
         } else if (d.act == "lang") {
           const L = ["uz", "ru", "en"];
           S.lang = L[(L.indexOf(S.lang || "uz") + 1) % 3];
@@ -3564,6 +3651,8 @@ Boshqa daromad¦Другой доход¦Other income`
         } catch (_) {}
         txForm();
       };
+      if ("serviceWorker" in navigator && location.protocol === "https:")
+        navigator.serviceWorker.register("sw.js").catch(() => {});
       load().then(() => {
         theme();
         lang0();
@@ -3571,6 +3660,11 @@ Boshqa daromad¦Другой доход¦Other income`
         render();
         pg();
         trn(document.body);
+        if (!lock && !S.name && !S.asked && !tgUser()) {
+          S.asked = 1;
+          save();
+          setTimeout(profForm, 700);
+        }
         if (lock)
           setTimeout(async () => {
             await load();
