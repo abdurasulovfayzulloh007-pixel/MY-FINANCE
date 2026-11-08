@@ -4097,6 +4097,236 @@ Boshqa daromad¦Другой доход¦Other income`
         } catch (_) {}
         txForm();
       };
+/* ===== v3.6: eslatma, prognoz, kutilayotgan balans, hamyon grafigi, avto-kurs, ovozli kiritish ===== */
+(() => {
+  const css = document.createElement("style");
+  css.textContent = `
+    .fab.mic{right:82px;width:46px;height:46px;bottom:calc(105px + env(safe-area-inset-bottom));background:rgb(var(--ac)/.18);color:rgb(var(--ac));box-shadow:none}
+    .fab.mic::before{display:none}
+    .fab.mic svg{width:22px;height:22px}
+    .fab.mic.rec{background:var(--bad);color:#fff}
+  `;
+  document.head.append(css);
+
+  /* ---------- 8. Maqsad prognozi ---------- */
+  function trackGoals() {
+    if (lock || !S || !S.g) return;
+    S.gl = S.gl || {};
+    let ch = false;
+    S.g.forEach((g) => {
+      if (!(g.id in S.gl)) { S.gl[g.id] = g.saved; g.t0 = g.t0 || today(); g.h = g.h || []; ch = true; }
+      else if (S.gl[g.id] !== g.saved) {
+        g.h = g.h || [];
+        g.t0 = g.t0 || today();
+        g.h.push({ d: today(), a: g.saved - S.gl[g.id] });
+        if (g.h.length > 200) g.h = g.h.slice(-200);
+        S.gl[g.id] = g.saved; ch = true;
+      }
+    });
+    if (ch) save();
+  }
+  function goalEta(g) {
+    if (g.saved >= g.target || !g.t0) return null;
+    const t = today();
+    if (gap(g.t0, t) < 2) return { t: t3("Prognoz uchun 2-3 kunlik ma'lumot kerak", "Для прогноза нужно 2–3 дня данных", "Need 2–3 days of data for a forecast") };
+    const days = Math.max(1, Math.min(60, gap(g.t0, t) + 1)), from = addD(t, -59);
+    const net = sum((g.h || []).filter((x) => x.d >= from), (x) => x.a);
+    if (net <= 0) return { t: t3("Hozircha jamg'arma qo'shilmagan", "Пока нет пополнений", "No deposits yet"), w: 1 };
+    const d = Math.ceil((g.target - g.saved) / (net / days));
+    if (d > 3650) return { t: t3("10 yildan ko'proq", "Больше 10 лет", "More than 10 years"), w: 1 };
+    const eta = addD(t, d), m = Math.round(d / 30);
+    const unit = d < 45 ? t3(`${d} kun`, `${d} дн.`, `${d} days`) : t3(`~${m} oy`, `~${m} мес.`, `~${m} mo.`);
+    const late = g.date && eta > g.date;
+    return { t: t3("Shu tezlikda: ", "Такими темпами: ", "At this pace: ") + unit + " (" + eta + ")" + (late ? " ⚠ " + t3("muddatdan keyin", "позже срока", "after deadline") : ""), w: late };
+  }
+  const pig0 = V.pig;
+  V.pig = () => {
+    let h = pig0();
+    const rows = S.g.map((g) => [g, goalEta(g)]).filter((x) => x[1]);
+    if (!rows.length) return h;
+    const card = `<div class="g"><h2 style="margin-top:0">🔮 ${t3("Maqsad prognozi", "Прогноз целей", "Goal forecast")}</h2>${rows.map(([g, e]) => `<div class="item"><b>${esc(g.name)}</b><span class="mu" style="display:block;${e.w ? "color:var(--warn)" : ""}">${esc(e.t)}</span></div>`).join("")}</div>`;
+    return h.replace('<button class="btn" data-act="newgoal">', () => card + '<button class="btn" data-act="newgoal">');
+  };
+
+  /* ---------- 9. Oy oxiridagi kutilayotgan balans ---------- */
+  function expCard() {
+    const t = today(), end = cm() + "-" + dim(cm()), ids = new Set(S.t.map((x) => x.id));
+    let inc = 0, out = 0, n = 0;
+    S.r.filter((r) => !r.pz).forEach((r) => {
+      const ds = [...due(r), ...occ(r, end).filter((d) => d > t && !(r.sk || []).includes(d) && !ids.has(rid(r, d)))];
+      ds.forEach(() => { n++; if (r.type == "in") inc += r.amt; else out += r.amt; });
+    });
+    if (!n) return "";
+    const bal = stats().bal, fin = bal + inc - out;
+    return `<div class="g"><h2 style="margin-top:0">🧮 ${t3("Oy oxiridagi balans (prognoz)", "Баланс на конец месяца (прогноз)", "Month-end balance (forecast)")}</h2>
+      <div class="row sp"><span class="mu">${t3("Hozirgi balans", "Текущий баланс", "Current balance")}</span><b>${fmt(bal)}</b></div>
+      <div class="row sp" style="margin-top:6px"><span class="mu">${t3("Kutilayotgan kirim", "Ожидаемый доход", "Expected income")}</span><b class="inc">+${fmt(inc)}</b></div>
+      <div class="row sp" style="margin-top:6px"><span class="mu">${t3("Kutilayotgan chiqim", "Ожидаемый расход", "Expected expenses")}</span><b class="exp">−${fmt(out)}</b></div>
+      <div class="row sp" style="border-top:1px solid var(--gb);padding-top:8px;margin-top:8px"><b>${t3("Oy oxirida", "На конец месяца", "At month end")}</b><b class="${fin < 0 ? "exp" : "inc"}">${fin < 0 ? "−" : ""}${fmt(Math.abs(fin))}</b></div>
+      <div class="mu" style="font-size:11px;margin-top:4px">${t3("Takroriy to'lovlar asosida (" + n + " ta)", "По регулярным платежам (" + n + ")", "Based on recurring payments (" + n + ")")}</div></div>`;
+  }
+
+  /* ---------- 5. Kechki eslatma ---------- */
+  function remBanner() {
+    const h = S.rh == null ? 20 : S.rh;
+    if (h >= 24 || new Date().getHours() < h || S.t.some((x) => x.d == today())) return "";
+    const st = streaks().cur;
+    return `<div class="g row sp"><div class="grow"><b>🔔 ${t3("Bugun hali yozuv kiritmadingiz", "Сегодня ещё нет записей", "No entries yet today")}</b><span class="mu" style="white-space:normal">${st > 0 ? "🔥 " + t3(`${st} kunlik seriya uzilmasin`, `Не прерывайте серию в ${st} дн.`, `Keep your ${st}-day streak alive`) : t3("Bugungi xarajatlarni yozing", "Запишите сегодняшние расходы", "Log today's expenses")}</span></div><button class="ib on" data-y="addtx" aria-label="+">+</button></div>`;
+  }
+  const remSetCard = () => {
+    const h = S.rh == null ? 20 : S.rh;
+    return `<div class="g"><h2 style="margin-top:0">🔔 ${t3("Kunlik eslatma", "Ежедневное напоминание", "Daily reminder")}</h2><select class="in" id="rhs">${[18, 19, 20, 21, 22, 23].map((x) => `<option value="${x}" ${x == h ? "selected" : ""}>${x}:00</option>`).join("")}<option value="24" ${h >= 24 ? "selected" : ""}>${t3("O'chiq", "Выкл.", "Off")}</option></select><div class="mu" style="font-size:12px">${t3("Shu vaqtdan keyin ilovani ochsangiz va bugun yozuv bo'lmasa, bosh sahifada eslatma chiqadi.", "Если после этого времени вы откроете приложение, а записей за день нет, на главной появится напоминание.", "If you open the app after this hour with no entries today, a reminder shows on the home screen.")}</div></div>`;
+  };
+
+  /* ---------- 10. Hamyonlar bo'yicha hisobot ---------- */
+  let rw = "";
+  function walRep() {
+    if (!S.t.length || S.w.length < 2) return "";
+    const [f, t] = range(), { out, len } = buckets(f, t), one = rw && S.w.some((w) => w.id == rw);
+    const ids = one ? [rw] : S.w.map((w) => w.id), L = S.t.filter((x) => x.d >= f && x.d <= t && ids.includes(wOf(x)));
+    const vals = out.map((b) => ({ l: b.l, i: sum(L.filter((x) => x.type == "in" && x.d.slice(0, len) == b.k)), e: sum(L.filter((x) => x.type == "out" && x.d.slice(0, len) == b.k)) }));
+    const mx = Math.max(1, ...vals.map((v) => Math.max(v.i, v.e))), step = Math.ceil(vals.length / 8), h = (v) => `height:${(v / mx) * 100}%;min-height:${v > 0 ? 2 : 0}px`;
+    const gp = vals.length > 20 ? 2 : 5;
+    const chips = [["all", t3("Hammasi", "Все", "All")], ...S.w.map((w) => [w.id, w.i + " " + w.n])].map(([k, l]) => `<div class="chip ${(k == "all" && !one) || k == rw ? "on" : ""}" data-y="rw:${k}">${esc(l)}</div>`).join("");
+    const rows = one ? "" : S.w.map((w) => {
+      const a = L.filter((x) => wOf(x) == w.id);
+      return `<div class="item row" style="cursor:default"><div class="ic" style="--c:${w.c}">${w.i}</div><div class="grow"><b>${esc(w.n)}</b><span class="mu"><span class="inc">+${fmt(sum(a.filter((x) => x.type == "in")))}</span> · <span class="exp">−${fmt(sum(a.filter((x) => x.type == "out")))}</span></span></div><b>${fmt(wBal(w.id))}</b></div>`;
+    }).join("");
+    return `<div class="g"><h2 style="margin-top:0">👛 ${t3("Hamyonlar bo'yicha", "По кошелькам", "By wallet")}</h2><div class="chips">${chips}</div>${L.length ? `<div class="chart" style="display:flex;align-items:flex-end;gap:${gp}px;height:120px">${vals.map((v) => `<div style="flex:1;height:100%;display:flex;align-items:flex-end;gap:1px"><i class="gr" style="flex:1;${h(v.i)};background:var(--ok);border-radius:3px 3px 0 0"></i><i class="gr" style="flex:1;${h(v.e)};background:var(--bad);border-radius:3px 3px 0 0"></i></div>`).join("")}</div><div style="display:flex;gap:${gp}px;margin-top:4px">${vals.map((v, i) => `<div class="mu" style="flex:1;text-align:center;font-size:10px;overflow:hidden">${i % step == 0 ? v.l : ""}</div>`).join("")}</div>` : `<div class="empty">${t3("Bu davrda yozuv yo'q.", "В этом периоде записей нет.", "No entries in this period.")}</div>`}${rows}</div>`;
+  }
+  const rep0 = V.rep;
+  V.rep = () => rep0().replace('<div class="g"><button class="btn" data-x="share">', () => walRep() + '<div class="g"><button class="btn" data-x="share">');
+
+  /* ---------- 11. Valyuta kursini avtomatik olish ---------- */
+  async function fxFetch(silent) {
+    try {
+      const r = await fetch("https://cbu.uz/oz/arkhiv-kursov-valyut/json/"), j = await r.json(), fx = { ...(S.fx || {}) };
+      let n = 0;
+      ["USD", "EUR", "RUB"].forEach((k) => {
+        const e = j.find((x) => x.Ccy == k), v = e && +e.Rate / (+e.Nominal || 1);
+        if (v > 0) { fx[k] = Math.round(v * 100) / 100; n++; }
+      });
+      if (!n) throw 0;
+      S.fx = fx; S.fxd = today(); save(); render();
+      if (!silent) toast(t3("Kurslar yangilandi", "Курсы обновлены", "Rates updated"));
+    } catch (_) {
+      if (!silent) toast(t3("Kursni olib bo'lmadi. Internetni tekshiring.", "Не удалось получить курс. Проверьте интернет.", "Couldn't fetch rates. Check your connection."));
+    }
+  }
+  const fxExtra = () => `<button class="btn" data-y="fxa" style="margin-bottom:8px">🌐 ${t3("Markaziy bank kursini olish", "Получить курс ЦБ", "Fetch Central Bank rates")}</button><button class="btn s" data-y="fxt" style="margin-bottom:8px">${S.fxa ? "✓ " + t3("Har kuni avtomatik: yoqilgan", "Авто каждый день: включено", "Daily auto-update: on") : t3("Har kuni avtomatik yangilash", "Обновлять автоматически каждый день", "Update automatically every day")}</button>${S.fxd ? `<div class="mu" style="margin-bottom:8px">${t3("Oxirgi yangilanish", "Последнее обновление", "Last updated")}: ${S.fxd}</div>` : ""}`;
+
+  /* ---------- 16. Ovozli kiritish ---------- */
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const nz = (s) => s.toLowerCase().replace(/[’ʻʼ‘`´']/g, "");
+  const NW = { bir: 1, ikki: 2, uch: 3, tort: 4, besh: 5, olti: 6, yetti: 7, sakkiz: 8, toqqiz: 9, on: 10, yigirma: 20, ottiz: 30, qirq: 40, ellik: 50, oltmish: 60, yetmish: 70, sakson: 80, toqson: 90 };
+  const KW = {
+    "Oziq-ovqat": /^(non|ovqat|gosht|bozor|kafe|restoran|tushlik|choy|kofe|oziq|food|еда|хлеб|продукт|обед|lunch|coffee|bread)/,
+    Transport: /^(taksi|taxi|benzin|avtobus|metro|yol|такси|бензин|автобус|метро|bus|fuel|gas$)/,
+    Kommunal: /^(svet|gaz|suv|internet|kommunal|elektr|свет|вода|интернет|коммунал|rent|ijara|аренд)/,
+    "Sog'liq": /^(dori|apteka|shifokor|doktor|аптек|лекарств|врач|pharmacy|doctor)/,
+    "Ta'lim": /^(kurs|kitob|oqish|maktab|universitet|курс|книг|школ|book|course)/,
+    "Ko'ngilochar": /^(kino|oyin|konsert|кино|игр|movie|game)/,
+    Xarid: /^(kiyim|telefon|xarid|dokon|одежд|магазин|покупк|shop|clothes)/,
+    Oila: /^(oila|bola|семь|дет|family|kid)/,
+  };
+  const KI = {
+    Maosh: /^(maosh|oylik|zarplata|зарплат|salary)/,
+    Biznes: /^(biznes|бизнес|business)/,
+    "Sovg'a": /^(sovga|подар|gift)/,
+    Frilans: /^(frilans|фриланс|freelance)/,
+  };
+  function parseVoice(txt) {
+    const tk = txt.replace(/(\d)\s+(?=\d{3}\b)/g, "$1").split(/\s+/).filter(Boolean);
+    let tot = 0, cur = 0, any = false, ty = "out", cat = "", words = [];
+    for (const o of tk) {
+      const w = nz(o);
+      if (/^\d+([.,]\d+)?$/.test(w)) { cur += parseFloat(w.replace(",", ".")); any = true; }
+      else if (Object.prototype.hasOwnProperty.call(NW, w)) { cur += NW[w]; any = true; }
+      else if (w == "yuz" || w == "сто") { cur = (cur || 1) * 100; any = true; }
+      else if (/^(ming|тысяч\w*|тыс|thousand|k|к)$/.test(w)) { tot += (cur || 1) * 1000; cur = 0; any = true; }
+      else if (/^(million\w*|mln|миллион\w*|млн)$/.test(w)) { tot += (cur || 1) * 1e6; cur = 0; any = true; }
+      else if (/^(som|sum|сум|uzs|сумов)$/.test(w)) { /* valyuta so'zi */ }
+      else words.push(o);
+    }
+    for (const o of words) {
+      const w = nz(o);
+      for (const c in KI) if (KI[c].test(w)) { ty = "in"; cat = cat || c; }
+      if (/^(daromad|kirim|доход|income)/.test(w)) ty = "in";
+    }
+    if (ty == "out") for (const o of words) { const w = nz(o); for (const c in KW) if (!cat && KW[c].test(w)) cat = c; }
+    const note = words.join(" ");
+    return { amt: Math.round(tot + cur), ty, cat, note: note.charAt(0).toUpperCase() + note.slice(1) };
+  }
+  function voiceAdd(txt) {
+    const p = parseVoice(txt);
+    if (!(p.amt > 0)) return toast(t3("Summa topilmadi: ", "Сумма не найдена: ", "No amount found: ") + "«" + txt + "»");
+    txForm();
+    if (p.ty == "in") { const b = document.querySelector('.sheet [data-ty="in"]'); if (b) b.click(); }
+    if (p.cat) { const b = [...document.querySelectorAll(".sheet [data-c]")].find((x) => x.dataset.c == p.cat); if (b) b.click(); }
+    const ta = $("#ta");
+    ta.value = gf(String(p.amt));
+    ta.dispatchEvent(new Event("input", { bubbles: true }));
+    if (p.note) $("#tn").value = p.note;
+    toast("🎤 " + txt);
+  }
+  const mic = document.createElement("button");
+  mic.className = "fab mic";
+  mic.id = "mic";
+  mic.setAttribute("aria-label", "Ovozli kiritish");
+  mic.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
+  document.body.append(mic);
+  mic.onclick = () => {
+    if (!SR) return toast(t3("Bu qurilmada ovoz tanish ishlamaydi. Brauzerda (Chrome/Safari) oching.", "Распознавание речи недоступно здесь. Откройте в браузере.", "Speech recognition isn't available here. Open in a browser."));
+    const r = new SR();
+    r.lang = { ru: "ru-RU", en: "en-US" }[S.lang] || "uz-UZ";
+    r.interimResults = false;
+    r.maxAlternatives = 1;
+    mic.classList.add("rec");
+    r.onresult = (e) => voiceAdd(e.results[0][0].transcript);
+    r.onerror = (e) => toast(e.error == "not-allowed" ? t3("Mikrofonga ruxsat bering", "Разрешите доступ к микрофону", "Allow microphone access") : t3("Ovoz tanilmadi, qayta urinib ko'ring", "Не удалось распознать, попробуйте ещё", "Couldn't recognize, try again"));
+    r.onend = () => mic.classList.remove("rec");
+    try { r.start(); } catch (_) { mic.classList.remove("rec"); }
+  };
+  let ly2 = 0;
+  addEventListener("scroll", () => { const y = scrollY; mic.classList.toggle("hide", y > ly2 && y > 80); ly2 = y; }, { passive: true });
+
+  /* ---------- ulash ---------- */
+  const home0 = V.home;
+  V.home = () => {
+    let h = home0();
+    const b = remBanner(), e = expCard();
+    if (b) h = h.replace('<div class="g hero">', () => b + '<div class="g hero">');
+    if (e) h = h.replace('<div class="g"><h2>Xarajatlar tarkibi</h2>', () => e + '<div class="g"><h2>Xarajatlar tarkibi</h2>');
+    return h;
+  };
+  const more0 = V.more;
+  V.more = () => {
+    let h = more0();
+    h = h.replace('<div class="g"><h2 style="margin-top:0">🎨', () => remSetCard() + '<div class="g"><h2 style="margin-top:0">🎨');
+    h = h.replace('<button class="btn s" data-y="fxs">', () => fxExtra() + '<button class="btn s" data-y="fxs">');
+    return h;
+  };
+  const render0 = render;
+  let fxDone = false;
+  render = function () {
+    trackGoals();
+    render0();
+    if (!fxDone && S && !lock) { fxDone = true; if (S.fxa && S.fxd != today()) fxFetch(true); }
+  };
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest && e.target.closest("[data-y]");
+    if (!b) return;
+    const [a, id] = b.dataset.y.split(":");
+    if (a == "rw") { rw = id == "all" ? "" : id; render(); }
+    else if (a == "addtx") txForm();
+    else if (a == "fxa") fxFetch(false);
+    else if (a == "fxt") { S.fxa = S.fxa ? 0 : 1; save(); render(); if (S.fxa) fxFetch(false); }
+  });
+  document.addEventListener("change", (e) => {
+    if (e.target && e.target.id == "rhs") { S.rh = +e.target.value; save(); toast(t3("Saqlandi", "Сохранено", "Saved")); }
+  });
+})();
+
       if ("serviceWorker" in navigator && location.protocol === "https:")
         navigator.serviceWorker.register("sw.js").catch(() => {});
       load().then(() => {
