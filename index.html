@@ -1434,6 +1434,27 @@ button.av { border: 0; cursor: pointer; padding: 0; font: inherit; font-weight: 
 .dots { display: flex; justify-content: center; gap: 6px; margin: 16px 0; }
 .dots i { width: 8px; height: 8px; border-radius: 50%; background: rgb(var(--mu) / 0.3); transition: all 0.3s; }
 .dots i.on { width: 22px; border-radius: 8px; background: rgb(var(--ac)); }
+
+/* ===== v3.5 ===== */
+.hero{background:radial-gradient(rgba(255,255,255,.13) 1px,transparent 1.5px) 0 0/14px 14px,linear-gradient(135deg,var(--hA,#1e3a8a),var(--hB,#2563eb) 45%,var(--hC,#06b6d4))}
+[data-t=dark] .hero{background:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1.5px) 0 0/14px 14px,linear-gradient(135deg,var(--hA,#0b2a7a),var(--hB,#1458e6) 55%,var(--hC,#0e9fc1))}
+.wls{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 12px;margin:0 -4px 4px;scrollbar-width:none}.wls::-webkit-scrollbar{display:none}
+.wl{flex:none;min-width:136px;padding:12px 14px;border-radius:20px;background:var(--g);border:1px solid var(--gb);display:grid;gap:2px;cursor:pointer;box-shadow:inset 0 3px 0 var(--c,rgb(var(--ac)))}
+.wl i{font-style:normal;font-size:20px}.wl span{font-size:12px;font-weight:700;color:rgb(var(--mu))}.wl b{font-size:16px;font-weight:800;white-space:nowrap}
+.wl.add{min-width:84px;place-items:center;align-content:center;box-shadow:none;border-style:dashed}
+.wg,.cur{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}.cur{justify-content:center;margin:2px 0}
+.wg button,.cur button{padding:9px 14px;border-radius:14px;border:1.5px solid transparent;background:rgb(var(--mu)/.1);color:inherit;font-weight:700;font-size:14px}
+.wg button.on{border-color:var(--c,rgb(var(--ac)));background:rgb(var(--ac)/.12)}.cur button.on{border-color:rgb(var(--ac));background:rgb(var(--ac)/.15)}
+.bar2{height:8px;border-radius:8px;background:rgb(var(--mu)/.15);margin:8px 0}.bar2 i{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,var(--ac2),rgb(var(--ac)))}.bar2.bad i{background:var(--bad)}
+#ub{position:fixed;left:16px;right:16px;bottom:calc(98px + env(safe-area-inset-bottom));z-index:60;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;border-radius:18px;background:rgba(11,18,36,.96);color:#fff;box-shadow:0 14px 30px rgba(0,0,0,.35);transform:translateY(calc(100% + 140px));opacity:0;transition:transform .3s cubic-bezier(.2,.8,.2,1),opacity .25s;pointer-events:none}
+#ub.on{transform:none;opacity:1;pointer-events:auto}#ub button{border:0;background:transparent;color:var(--ac2);font-weight:800;font-size:15px;padding:4px 8px}
+.pals{display:flex;gap:12px;flex-wrap:wrap}.pw{width:44px;height:44px;border-radius:50%;border:3px solid transparent;box-shadow:0 6px 14px -6px rgba(0,0,0,.4)}.pw.on{border-color:#fff;box-shadow:0 0 0 3px rgb(var(--ac))}
+.lk{position:fixed;inset:0;z-index:90;display:grid;place-items:center;background:linear-gradient(160deg,var(--a),var(--b))}
+.lkb{width:min(320px,86vw);text-align:center}.lkt{font-weight:800;font-size:18px;margin-bottom:18px}
+.lkd{display:flex;gap:14px;justify-content:center;margin-bottom:26px}.lkd i{width:14px;height:14px;border-radius:50%;border:2px solid rgb(var(--ac));transition:background .15s}.lkd i.on{background:rgb(var(--ac))}
+.lkp{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.lkp button{height:64px;border-radius:50%;border:0;background:rgb(var(--mu)/.12);color:inherit;font-size:24px;font-weight:700}.lkp button:active{background:rgb(var(--ac)/.28)}
+.lkf{margin-top:16px;display:flex;flex-direction:column;gap:4px}.lkf button{border:0;background:transparent;color:rgb(var(--mu));font-size:14px;padding:8px}
+.ov{z-index:120}#toast{z-index:400}
 </style>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
@@ -1544,6 +1565,9 @@ button.av { border: 0; cursor: pointer; padding: 0; font: inherit; font-weight: 
         S.t = u(S.t, R.t, id);
         S.g = u(S.g, R.g, id);
         S.r = u(S.r, R.r, id);
+ S.w = u(S.w, R.w, id);
+ S.tr = u(S.tr, R.tr, id);
+ if (!S.w.length) S.w = defW();
         S.c = u(S.c, R.c, (x) => "c:" + x.n);
         S.b = { ...(R.b || {}), ...S.b };
         S.lang = S.lang || R.lang;
@@ -1666,7 +1690,10 @@ button.av { border: 0; cursor: pointer; padding: 0; font: inherit; font-weight: 
         });
       let lock = false;
       const fresh = () => ({
-        v: DV,
+ w: defW(),
+ tr: [],
+ fx: {},
+ v: DV,
         t: [],
         g: [],
         b: {},
@@ -1772,6 +1799,7 @@ button.av { border: 0; cursor: pointer; padding: 0; font: inherit; font-weight: 
             : "light");
         document.documentElement.dataset.t = d;
         document.documentElement.classList.toggle("lite", liteOn());
+ applyPal();
         try {
           tg.setHeaderColor(d == "dark" ? "#050d1f" : "#dbeafe");
           tg.setBackgroundColor(d == "dark" ? "#050d1f" : "#ffffff");
@@ -1787,7 +1815,7 @@ button.av { border: 0; cursor: pointer; padding: 0; font: inherit; font-weight: 
           exp = sum(m.filter((x) => x.type == "out"));
         const allI = sum(S.t.filter((x) => x.type == "in")),
           allE = sum(S.t.filter((x) => x.type == "out"));
-        return { inc, exp, m, bal: allI - allE - saved() };
+        return { inc, exp, m, bal: allI - allE - saved() + sum(S.w || [], (w) => w.o || 0) };
       }
       const spentBy = (c) =>
         sum(
@@ -1819,7 +1847,7 @@ button.av { border: 0; cursor: pointer; padding: 0; font: inherit; font-weight: 
         ).join("");
       }
       const txRow = (x) =>
-        `<div class="item row" data-edit="${x.id}"><div class="ic" style="--c:${catCol(x.cat)}">${catIc(x.cat)}</div><div class="grow"><b>${esc(x.cat)}${x.rid ? '<em class="rec">🔁</em>' : ""}</b><span class="mu">${esc(x.note || (x.type == "in" ? "Daromad" : "Xarajat"))} · ${x.d}</span></div><b class="${x.type == "in" ? "inc" : "exp"}">${x.type == "in" ? "+" : "−"}${fmt(x.amt)}</b></div>`;
+        `<div class="item row" data-edit="${x.id}"><div class="ic" style="--c:${catCol(x.cat)}">${catIc(x.cat)}</div><div class="grow"><b>${esc(x.cat)}${x.rid ? '<em class="rec">🔁</em>' : ""}${x.cu ? `<em class="rec">${x.cu} ${gf(String(Math.round(x.oa)))}</em>` : ""}</b><span class="mu">${esc(x.note || (x.type == "in" ? "Daromad" : "Xarajat"))} · ${x.d}</span></div><b class="${x.type == "in" ? "inc" : "exp"}">${x.type == "in" ? "+" : "−"}${fmt(x.amt)}</b></div>`;
       const t3 = (u, r, e) => ({ ru: r, en: e }[S && S.lang] || u);
       const DB = () => S.dbt || (S.dbt = []);
       const rem = (d) => Math.max(0, d.amt - (d.paid || 0));
@@ -1895,7 +1923,7 @@ button.av { border: 0; cursor: pointer; padding: 0; font: inherit; font-weight: 
         if (id) {
           $("#dpb").onclick = () => { const v = +$("#dp").value.replace(/\s/g, ""); if (!(v > 0)) return toast(R("Summani kiriting.", "Введите сумму.", "Enter an amount.")); x.paid = Math.min(x.amt, (x.paid || 0) + v); save(); close(); render(); toast(R("Saqlandi", "Сохранено", "Saved")); };
           $("#dfull").onclick = () => { x.paid = x.amt; save(); close(); render(); toast(R("Saqlandi", "Сохранено", "Saved")); };
-          $("#ddl").onclick = async () => { if (await ask(R("Qarz o'chiriladi. Davom etasizmi?", "Долг будет удалён. Продолжить?", "The debt will be deleted. Continue?"))) { S.dbt = DB().filter((d) => d.id != id); save(); close(); render(); } };
+          $("#ddl").onclick = async () => { if (await ask(R("Qarz o'chiriladi. Davom etasizmi?", "Долг будет удалён. Продолжить?", "The debt will be deleted. Continue?"))) { S.dbt = DB().filter((d) => d.id != id); save(); close(); render(); undoBar(t3("Qarz o'chirildi", "Долг удалён", "Debt deleted"), () => { S.dbt = [...DB(), x]; save(); render(); }); } };
         }
       }
       /* ---- tahlil kartalari ---- */
@@ -2144,8 +2172,8 @@ button.av { border: 0; cursor: pointer; padding: 0; font: inherit; font-weight: 
           )
           .join("");
         return `${greet()}<div class="g hero"><div class="row sp"><span class="mu">Umumiy balans</span><span class="mu">Jamg'arma: ${fmt(saved())}</span></div><div class="big" data-count="${s.bal}">${fmt(s.bal)}</div>${spark()}<div class="row"><div class="pill"><u>↓</u><div><span class="mu">Daromad (oy)</span><b>${fmt(s.inc)}</b></div></div><div class="pill"><u>↑</u><div><span class="mu">Xarajat (oy)</span><b>${fmt(s.exp)}</b></div></div></div></div>
- ${warn ? `<div class="g">${warn}</div>` : ""}
- ${payCard()}<div class="g"><h2>Xarajatlar tarkibi</h2>${
+ ${walletCard()}${warn ? `<div class="g">${warn}</div>` : ""}
+ ${limCard()}${remCard()}${payCard()}<div class="g"><h2>Xarajatlar tarkibi</h2>${
    ce.length
      ? `<div class="row"><div class="donut" style="background:conic-gradient(${grad})"><div>${ce.length} ta<br>kategoriya</div></div><div class="grow">${ce
          .slice(0, 5)
@@ -2171,8 +2199,9 @@ button.av { border: 0; cursor: pointer; padding: 0; font: inherit; font-weight: 
         if (flt != "all") l = l.filter((x) => x.type == flt);
         if (q)
           l = l.filter((x) =>
-            (x.cat + " " + x.note).toLowerCase().includes(q.toLowerCase()),
-          );
+ (x.cat + " " + x.note).toLowerCase().includes(q.toLowerCase()),
+ );
+ l = hfApply(l);
         return `<h2>Tranzaksiyalar tarixi</h2><input class="in" id="q" placeholder="Qidirish…" value="${esc(q)}"><div class="chips">${[
           ["all", "Hammasi"],
           ["in", "Daromad"],
@@ -2182,7 +2211,7 @@ button.av { border: 0; cursor: pointer; padding: 0; font: inherit; font-weight: 
             ([k, v]) =>
               `<div class="chip ${flt == k ? "on" : ""}" data-f="${k}">${v}</div>`,
           )
-          .join("")}</div>
+          .join("")}${hfChips()}</div>${hsum(l)}
  <div class="g">${l.length ? byDay(l.slice(0, lim)) : '<div class="empty">Hech narsa topilmadi.</div>'}${l.length > lim ? `<button class="btn s" data-act="more">Yana (${l.length - lim})</button>` : ""}</div>`;
       }
       function vPig() {
@@ -2214,7 +2243,7 @@ button.av { border: 0; cursor: pointer; padding: 0; font: inherit; font-weight: 
       }
       function vMore() {
         return `<h2>Sozlamalar</h2><div class="g"><div class="mu">Hisob yaratilgan: ${new Date(S.created).toLocaleDateString("uz-UZ")}<br>Ma'lumotlar ${CS ? "Telegram bulutida (barcha qurilmalaringizda)" : "shu brauzerda (sinov rejimi — Telegram ichida bulutga yoziladi)"} saqlanadi.</div></div>
- ${debtCard()}${achCard()}${catCard()}${recCard()}${bakCard()}<div class="g"><button class="btn d" data-act="reset">Barcha ma'lumotlarni o'chirish</button></div><div class="ver">Finora · v${APP_V} · data v${S.v}</div>`;
+ ${walCard()}${debtCard()}${achCard()}${palCard()}${fxCard()}${secCard()}${catCard()}${recCard()}${bakCard()}<div class="g"><button class="btn d" data-act="reset">Barcha ma'lumotlarni o'chirish</button></div><div class="ver">Finora · v${APP_V} · data v${S.v}</div>`;
       }
       let per = "month",
         cf = today(),
@@ -2870,13 +2899,16 @@ button.av { border: 0; cursor: pointer; padding: 0; font: inherit; font-weight: 
           }
         };
       }
-      const APP_V = "3.4.0",
-        DV = 3;
+      const APP_V = "3.5.0",
+ DV = 4;
       function migrate() {
         S.r = S.r || [];
         S.c = S.c || [];
         S.x = S.x || [];
-        S.dbt = S.dbt || [];
+ S.dbt = S.dbt || [];
+ S.w = S.w && S.w.length ? S.w : defW();
+ S.tr = S.tr || [];
+ S.fx = S.fx || {};
         S.r.forEach((r) => {
           if (!r.f) {
             r.f = "m";
@@ -3520,6 +3552,201 @@ Boshqa daromad¦Другой доход¦Other income`
         /^(\d+) kun qoldi$/,
         { ru: "Осталось дней: $1", en: "$1 days left" },
       ]);
+      
+      /* ===== v3.5: hamyonlar, limit, undo, PIN, valyuta, filtr, rang ===== */
+      let tfs = { wl: "", cu: "UZS" }, hf = {};
+      function defW() { return [{ id: "w1", n: "Naqd", i: "💵", c: "#10b981", o: 0 }, { id: "w2", n: "Karta", i: "💳", c: "#3b82f6", o: 0 }]; }
+      const wOf = (x) => (x.w && S.w.some((w) => w.id == x.w) ? x.w : S.w[0].id);
+      const wBal = (id) => {
+        const w = S.w.find((z) => z.id == id) || {};
+        return (w.o || 0) + sum(S.t.filter((x) => wOf(x) == id), (x) => (x.type == "in" ? x.amt : -x.amt)) + sum((S.tr || []).filter((x) => x.t == id)) - sum((S.tr || []).filter((x) => x.f == id));
+      };
+      const WEM = ["💵", "💳", "🏦", "💰", "👛", "📱", "🪙", "🏠", "💼", "🎯"];
+      const walletCard = () => `<div class="wls">${S.w.map((w) => `<div class="wl" style="--c:${w.c}" data-y="wal:${w.id}"><i>${w.i}</i><span>${esc(w.n)}</span><b>${fmt(wBal(w.id))}</b></div>`).join("")}<div class="wl add" data-y="nwal"><i>＋</i><span>${t3("Hamyon", "Кошелёк", "Wallet")}</span></div></div>`;
+      const walCard = () => {
+        const tr = [...(S.tr || [])].sort((a, b) => b.d.localeCompare(a.d) || b.ts - a.ts).slice(0, 3), nm = (id) => { const w = S.w.find((z) => z.id == id); return w ? w.i + " " + esc(w.n) : "?"; };
+        return `<div class="g"><h2 style="margin-top:0">👛 ${t3("Hamyonlar", "Кошельки", "Wallets")}</h2>${S.w.map((w) => `<div class="item row" data-y="wal:${w.id}"><div class="ic" style="--c:${w.c}">${w.i}</div><div class="grow"><b>${esc(w.n)}</b></div><b>${fmt(wBal(w.id))}</b></div>`).join("")}${tr.map((x) => `<div class="item row" data-y="tr:${x.id}"><div class="ic" style="--c:#8b5cf6">⇄</div><div class="grow"><b>${nm(x.f)} → ${nm(x.t)}</b><span class="mu">${x.d}${x.note ? " · " + esc(x.note) : ""}</span></div><b>${fmt(x.amt)}</b></div>`).join("")}<div class="c2" style="margin-top:10px"><button class="btn s" style="margin:0" data-y="nwal">+ ${t3("Hamyon", "Кошелёк", "Wallet")}</button><button class="btn s" style="margin:0" data-y="ntr">⇄ ${t3("O'tkazma", "Перевод", "Transfer")}</button></div></div>`;
+      };
+      function walForm(id) {
+        const w = S.w.find((z) => z.id == id) || { n: "", i: WEM[0], c: COL[0], o: 0 };
+        let ic = w.i, co = w.c;
+        sheet(`<h2>${t3("Hamyon", "Кошелёк", "Wallet")}</h2><label>${t3("Nomi", "Название", "Name")}</label><input class="in" id="wn" maxlength="20" value="${esc(w.n)}"><label>${t3("Belgi", "Значок", "Icon")}</label><div class="eg">${WEM.map((e) => `<button type="button" data-e="${e}" class="${e == ic ? "on" : ""}">${e}</button>`).join("")}</div><label>${t3("Rang", "Цвет", "Color")}</label><div class="sw">${COL.map((k) => `<button type="button" data-col="${k}" style="--c:${k}" class="${k == co ? "on" : ""}"></button>`).join("")}</div><label>${t3("Boshlang'ich qoldiq (so'm)", "Начальный остаток (сум)", "Opening balance (UZS)")}</label><input class="in" id="wo" inputmode="numeric" value="${w.o || ""}"><button class="btn" id="wsv">${t3("Saqlash", "Сохранить", "Save")}</button>${id && S.w.length > 1 ? `<button class="btn d" id="wdl">${t3("O'chirish", "Удалить", "Delete")}</button>` : ""}`);
+        const mark = () => { document.querySelectorAll(".sheet [data-e]").forEach((b) => b.classList.toggle("on", b.dataset.e == ic)); document.querySelectorAll(".sheet [data-col]").forEach((b) => b.classList.toggle("on", b.dataset.col == co)); };
+        document.querySelectorAll(".sheet [data-e]").forEach((b) => (b.onclick = () => { ic = b.dataset.e; mark(); }));
+        document.querySelectorAll(".sheet [data-col]").forEach((b) => (b.onclick = () => { co = b.dataset.col; mark(); }));
+        $("#wsv").onclick = () => {
+          const n = $("#wn").value.trim();
+          if (!n) return toast(t3("Nomini kiriting.", "Введите название.", "Enter a name."));
+          const v = { id: id || uid(), n, i: ic, c: co, o: +$("#wo").value.replace(/\s/g, "") || 0 };
+          S.w = id ? S.w.map((z) => (z.id == id ? v : z)) : [...S.w, v];
+          save(); close(); render(); toast(t3("Saqlandi", "Сохранено", "Saved"));
+        };
+        if (id && S.w.length > 1) $("#wdl").onclick = async () => {
+          if (await ask(t3("Hamyon o'chiriladi, yozuvlar birinchi hamyonga o'tadi. Davom etasizmi?", "Кошелёк будет удалён, записи перейдут в первый кошелёк. Продолжить?", "The wallet will be deleted and its entries move to the first wallet. Continue?"))) {
+            (S.tr || []).filter((x) => x.f == id || x.t == id).forEach((x) => tomb(x.id));
+            S.tr = (S.tr || []).filter((x) => x.f != id && x.t != id); tomb(id); S.w = S.w.filter((z) => z.id != id);
+            save(); close(); render();
+          }
+        };
+      }
+      function trForm(id) {
+        const x = (S.tr || []).find((z) => z.id == id) || { f: S.w[0].id, t: (S.w[1] || S.w[0]).id, amt: "", d: today(), note: "" };
+        const wo = (v) => S.w.map((w) => `<option value="${w.id}" ${w.id == v ? "selected" : ""}>${w.i} ${esc(w.n)}</option>`).join("");
+        sheet(`<h2>⇄ ${t3("O'tkazma", "Перевод", "Transfer")}</h2><div class="c2"><div><label>${t3("Qaysi hamyondan", "Откуда", "From")}</label><select class="in" id="trf">${wo(x.f)}</select></div><div><label>${t3("Qaysi hamyonga", "Куда", "To")}</label><select class="in" id="trt">${wo(x.t)}</select></div></div><label>${t3("Summa (so'm)", "Сумма (сум)", "Amount (UZS)")}</label><input class="in" id="tra" inputmode="numeric" value="${x.amt}"><div class="c2"><div><label>${t3("Sana", "Дата", "Date")}</label><input class="in" id="trd" type="date" value="${x.d}"></div><div><label>${t3("Izoh", "Комментарий", "Note")}</label><input class="in" id="trm" maxlength="100" value="${esc(x.note || "")}"></div></div><button class="btn" id="trs">${t3("Saqlash", "Сохранить", "Save")}</button>${id ? `<button class="btn d" id="trx">${t3("O'chirish", "Удалить", "Delete")}</button>` : ""}`);
+        $("#trs").onclick = () => {
+          const f = $("#trf").value, t = $("#trt").value, amt = +$("#tra").value.replace(/\s/g, "");
+          if (f == t) return toast(t3("Hamyonlar har xil bo'lsin.", "Выберите разные кошельки.", "Pick different wallets."));
+          if (!(amt > 0)) return toast(t3("Summani kiriting.", "Введите сумму.", "Enter an amount."));
+          const v = { id: id || uid(), f, t, amt, d: $("#trd").value || today(), note: $("#trm").value.trim(), ts: x.ts || Date.now() };
+          S.tr = id ? S.tr.map((z) => (z.id == id ? v : z)) : [...(S.tr || []), v];
+          save(); close(); render(); toast(t3("Saqlandi", "Сохранено", "Saved"));
+        };
+        if (id) $("#trx").onclick = async () => {
+          if (await ask(t3("O'tkazma o'chiriladi. Davom etasizmi?", "Перевод будет удалён. Продолжить?", "The transfer will be deleted. Continue?"))) { tomb(id); S.tr = S.tr.filter((z) => z.id != id); save(); close(); render(); }
+        };
+      }
+      function wDraw() {
+        const b = $("#twg");
+        b.innerHTML = S.w.map((w) => `<button type="button" class="${tfs.wl == w.id ? "on" : ""}" data-wl="${w.id}" style="--c:${w.c}">${w.i} ${esc(w.n)}</button>`).join("");
+        b.querySelectorAll("[data-wl]").forEach((x) => (x.onclick = () => { tfs.wl = x.dataset.wl; wDraw(); }));
+      }
+      function cuPv() {
+        const p = $("#tpv"); if (!p) return;
+        const v = +$("#ta").value.replace(/\s/g, "").replace(",", ".");
+        p.textContent = tfs.cu != "UZS" && S.fx[tfs.cu] > 0 && v > 0 ? "≈ " + fmt(Math.round(v * S.fx[tfs.cu])) : "";
+      }
+      function cuDraw() {
+        const cs = ["UZS", ...["USD", "EUR", "RUB"].filter((k) => S.fx && S.fx[k] > 0)];
+        if (!cs.includes(tfs.cu)) tfs.cu = "UZS";
+        const b = $("#tcu");
+        b.innerHTML = cs.length > 1 ? cs.map((k) => `<button type="button" class="${tfs.cu == k ? "on" : ""}" data-cu="${k}">${k == "UZS" ? "so'm" : k}</button>`).join("") : "";
+        b.querySelectorAll("[data-cu]").forEach((x) => (x.onclick = () => { tfs.cu = x.dataset.cu; cuDraw(); }));
+        $("#tcl").textContent = tfs.cu == "UZS" ? "so'm" : tfs.cu;
+        cuPv();
+      }
+      const fxCard = () => `<div class="g"><h2 style="margin-top:0">💱 ${t3("Valyuta kurslari", "Курсы валют", "Exchange rates")}</h2><div class="mu" style="margin-bottom:8px">${t3("Yozuv kiritishda valyutani tanlash uchun kursni kiriting (1 birlik = necha so'm).", "Укажите курс, чтобы выбирать валюту при добавлении записи (1 единица = сколько сум).", "Set a rate to pick a currency when adding entries (1 unit = how many UZS).")}</div>${["USD", "EUR", "RUB"].map((k) => `<div class="row sp" style="margin-bottom:8px"><b>1 ${k} =</b><input class="in" style="width:55%;margin:0" id="fx${k}" inputmode="numeric" value="${(S.fx && S.fx[k]) || ""}"></div>`).join("")}<button class="btn s" data-y="fxs">${t3("Saqlash", "Сохранить", "Save")}</button></div>`;
+      function limCard() {
+        const t = today(), day = +t.slice(8), n = dim(cm()), left = n - day + 1, s = stats(), bc = Object.keys(S.b);
+        if (!s.exp && !bc.length) return "";
+        const lim = sum(Object.values(S.b), (v) => +v), sp = sum(bc, (c) => spentBy(c)), ts = sum(S.t.filter((x) => x.type == "out" && x.d == t && S.b[x.cat])), proj = Math.round((s.exp / day) * n);
+        let h = `<div class="g"><h2 style="margin-top:0">📈 ${t3("Kunlik limit va prognoz", "Дневной лимит и прогноз", "Daily limit & forecast")}</h2>`;
+        if (lim > 0) {
+          const allow = Math.max(0, (lim - (sp - ts)) / left), r = Math.round(allow - ts);
+          h += `<div class="row sp"><span class="mu">${r < 0 ? t3("Bugungi limitdan oshdi", "Превышен лимит на сегодня", "Over today's limit") : t3("Bugun sarflash mumkin", "Можно потратить сегодня", "Can spend today")}</span><b class="${r < 0 ? "exp" : "inc"}">${fmt(Math.abs(r))}</b></div><div class="bar2${sp > lim ? " bad" : ""}"><i style="width:${Math.min(100, (sp / lim) * 100)}%"></i></div><div class="row sp mu"><span>${t3("Byudjet", "Бюджет", "Budget")}: ${fmt(lim)}</span><span>${t3("Sarflandi", "Потрачено", "Spent")}: ${fmt(sp)}</span></div>`;
+        }
+        h += `<div class="row sp" style="margin-top:10px"><span class="mu">${t3("Oy oxirigacha prognoz", "Прогноз на конец месяца", "Month-end forecast")}</span><b>${fmt(proj)}</b></div>`;
+        if (lim > 0 && sp / day * n > lim) h += `<div class="mu" style="color:var(--warn);margin-top:4px">⚠ ${t3("Shu tezlikda byudjetdan oshasiz", "При таком темпе вы превысите бюджет", "At this pace you will exceed the budget")}</div>`;
+        return h + "</div>";
+      }
+      function remCard() {
+        const t = today(), L = DB().filter((d) => rem(d) > 0 && d.due && d.due <= addD(t, 3)).sort((a, b) => (a.due < b.due ? -1 : 1));
+        if (!L.length) return "";
+        return `<div class="g"><h2 style="margin-top:0">⏰ ${t3("Eslatmalar", "Напоминания", "Reminders")}</h2>${L.map((d) => {
+          const n = Math.round(gap(t, d.due)), late = n < 0;
+          const when = late ? t3(`${-n} kun kechikdi`, `просрочено на ${-n} дн.`, `${-n} days overdue`) : n == 0 ? t3("Bugun", "Сегодня", "Today") : t3(`${n} kun qoldi`, `осталось ${n} дн.`, `${n} days left`);
+          return `<div class="item row" data-x="debt:${d.id}"><div class="ic" style="--c:${late ? "#ef4444" : "#f59e0b"}">🤝</div><div class="grow"><b>${esc(d.who)}<em class="rec">${d.type == "lent" ? t3("sizga qarz", "должен вам", "owes you") : t3("siz qarzdorsiz", "вы должны", "you owe")}</em></b><span class="mu" style="color:${late ? "var(--bad)" : "var(--warn)"}">${when}</span></div><b>${fmt(rem(d))}</b></div>`;
+        }).join("")}</div>`;
+      }
+      let ubT;
+      function undoBar(m, fn) {
+        let b = $("#ub");
+        if (!b) { b = document.createElement("div"); b.id = "ub"; document.body.append(b); }
+        b.innerHTML = `<span>${esc(m)}</span><button>${t3("Qaytarish", "Вернуть", "Undo")}</button>`;
+        void b.offsetWidth; b.classList.add("on"); clearTimeout(ubT);
+        ubT = setTimeout(() => b.classList.remove("on"), 6000);
+        b.querySelector("button").onclick = () => { b.classList.remove("on"); fn(); };
+      }
+      const hfN = () => Object.values(hf).filter((v) => v !== "" && v != null).length;
+      const hfApply = (l) => l.filter((x) => (!hf.from || x.d >= hf.from) && (!hf.to || x.d <= hf.to) && (!hf.cat || x.cat == hf.cat) && (!hf.w || wOf(x) == hf.w) && (!hf.min || x.amt >= +hf.min) && (!hf.max || x.amt <= +hf.max));
+      const hfChips = () => { const n = hfN(); return `<div class="chip ${n ? "on" : ""}" data-y="filt">⚙ ${t3("Filtr", "Фильтр", "Filter")}${n ? " (" + n + ")" : ""}</div>${n ? '<div class="chip" data-y="fclr">✕</div>' : ""}`; };
+      const hsum = (l) => (q || hfN() || flt != "all" ? `<div class="mu" style="margin:0 4px 8px">${l.length} ${t3("yozuv", "записей", "entries")} · +${fmt(sum(l.filter((x) => x.type == "in")))} · −${fmt(sum(l.filter((x) => x.type == "out")))}</div>` : "");
+      function hfForm() {
+        const cs = [...EXP, ...INC.filter((c) => !EXP.includes(c))], all = `<option value="">${t3("Hammasi", "Все", "All")}</option>`;
+        const oc = cs.map((c) => `<option value="${esc(c)}" ${c == hf.cat ? "selected" : ""}>${esc(c)}</option>`).join(""), ow = S.w.map((w) => `<option value="${w.id}" ${w.id == hf.w ? "selected" : ""}>${w.i} ${esc(w.n)}</option>`).join("");
+        sheet(`<h2>${t3("Filtr", "Фильтр", "Filter")}</h2><div class="c2"><div><label>${t3("Dan", "С", "From")}</label><input class="in" id="hf1" type="date" value="${hf.from || ""}"></div><div><label>${t3("Gacha", "По", "To")}</label><input class="in" id="hf2" type="date" value="${hf.to || ""}"></div></div><label>${t3("Kategoriya", "Категория", "Category")}</label><select class="in" id="hf3">${all}${oc}</select><label>${t3("Hamyon", "Кошелёк", "Wallet")}</label><select class="in" id="hf4">${all}${ow}</select><div class="c2"><div><label>${t3("Min summa", "Мин. сумма", "Min amount")}</label><input class="in" id="hf5" inputmode="numeric" value="${hf.min || ""}"></div><div><label>${t3("Max summa", "Макс. сумма", "Max amount")}</label><input class="in" id="hf6" inputmode="numeric" value="${hf.max || ""}"></div></div><button class="btn" id="hfa">${t3("Qo'llash", "Применить", "Apply")}</button><button class="btn s" id="hfc">${t3("Tozalash", "Сбросить", "Clear")}</button>`);
+        $("#hfa").onclick = () => { const n = (k) => $("#" + k).value.replace(/\s/g, ""); hf = { from: $("#hf1").value, to: $("#hf2").value, cat: $("#hf3").value, w: $("#hf4").value, min: n("hf5"), max: n("hf6") }; close(); render(); };
+        $("#hfc").onclick = () => { hf = {}; close(); render(); };
+      }
+      const PALS = { blue: ["", "", "#1e3a8a", "#2563eb", "#06b6d4", ""], green: ["5 150 105", "#34d399", "#064e3b", "#059669", "#34d399", "52 211 153"], violet: ["124 58 237", "#c084fc", "#4c1d95", "#7c3aed", "#c084fc", "167 139 250"], rose: ["225 29 72", "#fb7185", "#881337", "#e11d48", "#fb923c", "251 113 133"], sun: ["234 88 12", "#fbbf24", "#9a3412", "#ea580c", "#fbbf24", "251 146 60"], slate: ["71 85 105", "#94a3b8", "#0f172a", "#334155", "#64748b", "148 163 184"] };
+      function applyPal() {
+        const r = document.documentElement.style, p = PALS[(S && S.pal) || "blue"], dk = document.documentElement.dataset.t == "dark";
+        const set = (k, v) => (v ? r.setProperty(k, v) : r.removeProperty(k));
+        set("--ac", p[0] && (dk ? p[5] : p[0])); set("--ac2", p[1]);
+        set("--hA", p[0] && p[2]); set("--hB", p[0] && p[3]); set("--hC", p[0] && p[4]);
+      }
+      const palCard = () => `<div class="g"><h2 style="margin-top:0">🎨 ${t3("Rang mavzusi", "Цвет темы", "Accent color")}</h2><div class="pals">${Object.entries(PALS).map(([k, v]) => `<button class="pw ${(S.pal || "blue") == k ? "on" : ""}" data-y="pal:${k}" style="background:linear-gradient(135deg,${v[2]},${v[4]})" aria-label="${k}"></button>`).join("")}</div></div>`;
+      /* ---- PIN ---- */
+      const hashPin = async (p, s) => { try { const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s + ":" + p)); return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, "0")).join(""); } catch (_) { return cs(s + ":" + p); } };
+      const bioSupported = () => !!(tg && tg.initData && tg.BiometricManager && tg.isVersionAtLeast && tg.isVersionAtLeast("7.2"));
+      const bioAuth = () => new Promise((ok) => { try { const B = tg.BiometricManager; B.init(() => { if (!B.isBiometricAvailable || !B.isAccessGranted) return ok(false); B.authenticate({ reason: "Finora" }, (g) => ok(!!g)); }); } catch (_) { ok(false); } });
+      function padUI(title, o = {}) {
+        return new Promise((res) => {
+          const el = document.createElement("div"); el.className = "lk"; let v = "", busy = false;
+          const draw = () => (el.querySelector(".lkd").innerHTML = [0, 1, 2, 3].map((i) => `<i class="${i < v.length ? "on" : ""}"></i>`).join(""));
+          el.innerHTML = `<div class="lkb"><div class="lkt">${esc(title)}</div><div class="lkd"></div><div class="lkp">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `<button data-n="${n}">${n}</button>`).join("")}<button data-n="b">${o.bio ? "🔐" : ""}</button><button data-n="0">0</button><button data-n="d">⌫</button></div><div class="lkf">${o.forgot ? `<button data-n="f">${t3("PINni unutdim", "Забыл PIN", "Forgot PIN")}</button>` : ""}${o.cancel ? `<button data-n="c">${t3("Bekor qilish", "Отмена", "Cancel")}</button>` : ""}</div></div>`;
+          const kd = (e) => { if (/^\d$/.test(e.key)) push(e.key); else if (e.key == "Backspace") push("d"); else if (e.key == "Escape" && o.cancel) push("c"); };
+          const done = (r) => { document.removeEventListener("keydown", kd); el.remove(); res(r); };
+          const push = async (d) => {
+            if (busy) return;
+            if (d == "d") { v = v.slice(0, -1); return draw(); }
+            if (d == "c") return done(null);
+            if (d == "b") { if (o.bio && (await o.bio())) done("BIO"); return; }
+            if (d == "f") { if (o.forgot) o.forgot(done); return; }
+            if (!/^\d$/.test(d) || v.length >= 4) return;
+            v += d; draw();
+            if (v.length == 4) {
+              busy = true; const ok = o.check ? await o.check(v) : true; busy = false;
+              if (ok) done(v);
+              else { const bx = el.querySelector(".lkd"); bx.classList.remove("shake"); void bx.offsetWidth; bx.classList.add("shake"); try { tg.HapticFeedback.notificationOccurred("error"); } catch (_) {} v = ""; draw(); }
+            }
+          };
+          el.onclick = (e) => { const b = e.target.closest("[data-n]"); if (b) push(b.dataset.n); };
+          document.addEventListener("keydown", kd); document.body.append(el); draw();
+          if (o.bio && o.autobio) o.bio().then((ok) => ok && done("BIO"));
+        });
+      }
+      let fails = 0, until = 0, locking = false;
+      async function unlock() {
+        if (locking || !S.pin) return; locking = true;
+        await padUI(t3("PIN kiriting", "Введите PIN", "Enter PIN"), {
+          bio: S.bio && bioSupported() ? bioAuth : null, autobio: true,
+          forgot: (fg) => ask(t3("Barcha ma'lumotlar o'chiriladi va PIN olib tashlanadi. Davom etasizmi?", "Все данные будут удалены, PIN сброшен. Продолжить?", "All data will be erased and the PIN removed. Continue?")).then((y) => { if (y) { S = fresh(); syncCats(); save(); theme(); render(); fg("RESET"); } }),
+          check: async (p) => {
+            if (Date.now() < until) { toast(t3("30 soniyadan keyin urinib ko'ring", "Повторите через 30 секунд", "Try again in 30 seconds")); return false; }
+            const ok = (await hashPin(p, S.pin.s)) == S.pin.h;
+            if (!ok && ++fails >= 5) { fails = 0; until = Date.now() + 3e4; }
+            return ok;
+          },
+        });
+        locking = false;
+      }
+      const verifyOld = () => padUI(t3("Joriy PIN", "Текущий PIN", "Current PIN"), { cancel: 1, check: async (p) => (await hashPin(p, S.pin.s)) == S.pin.h });
+      async function setPin() {
+        const a = await padUI(t3("Yangi PIN (4 raqam)", "Новый PIN (4 цифры)", "New PIN (4 digits)"), { cancel: 1 }); if (!a) return;
+        const b = await padUI(t3("PINni takrorlang", "Повторите PIN", "Repeat the PIN"), { cancel: 1, check: async (p) => p == a }); if (!b) return;
+        const s = uid(); S.pin = { s, h: await hashPin(a, s) }; save(); render(); toast(t3("PIN o'rnatildi", "PIN установлен", "PIN set"));
+      }
+      async function chgPin() { if (await verifyOld()) await setPin(); }
+      async function delPin() { if (await verifyOld()) { delete S.pin; delete S.bio; save(); render(); toast(t3("PIN o'chirildi", "PIN удалён", "PIN removed")); } }
+      function bioToggle() {
+        if (S.bio) { delete S.bio; save(); render(); return; }
+        try { const B = tg.BiometricManager; B.init(() => { if (!B.isBiometricAvailable) return toast(t3("Qurilmada mavjud emas", "Недоступно на устройстве", "Not available on this device")); B.requestAccess({ reason: "Finora" }, (g) => { if (g) { S.bio = 1; save(); render(); toast(t3("Yoqildi", "Включено", "Enabled")); } else toast(t3("Ruxsat berilmadi", "Доступ не разрешён", "Access denied")); }); }); } catch (_) { toast(t3("Mavjud emas", "Недоступно", "Not available")); }
+      }
+      const secCard = () => `<div class="g"><h2 style="margin-top:0">🔒 ${t3("Xavfsizlik", "Безопасность", "Security")}</h2><div class="mu" style="margin-bottom:8px">${S.pin ? t3("PIN yoqilgan", "PIN включён", "PIN is on") : t3("PIN o'rnatilmagan", "PIN не задан", "No PIN set")}</div>${S.pin ? `<button class="btn s" data-y="pchg">${t3("PINni o'zgartirish", "Изменить PIN", "Change PIN")}</button><button class="btn s" data-y="pdel">${t3("PINni o'chirish", "Удалить PIN", "Remove PIN")}</button>${bioSupported() ? `<button class="btn s" data-y="bio">${S.bio ? t3("Barmoq izi / Face ID: yoqilgan", "Отпечаток / Face ID: включено", "Fingerprint / Face ID: on") : t3("Barmoq izi / Face ID yoqish", "Включить отпечаток / Face ID", "Enable fingerprint / Face ID")}</button>` : ""}` : `<button class="btn" data-y="pset">${t3("PIN o'rnatish", "Установить PIN", "Set PIN")}</button>`}<div class="mu" style="margin-top:8px;font-size:12px">${t3("PIN ilovani ochishdan himoya qiladi, ma'lumotni shifrlamaydi. PINni unutsangiz, ma'lumotlar o'chiriladi: JSON zaxirani saqlab qo'ying.", "PIN защищает вход в приложение, но не шифрует данные. Если забудете PIN, данные будут удалены: сохраните JSON-копию.", "The PIN protects opening the app but does not encrypt data. If you forget it, data is erased: keep a JSON backup.")}</div></div>`;
+      let hiddenAt = 0;
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) hiddenAt = Date.now();
+        else if (S && S.pin && hiddenAt && Date.now() - hiddenAt > 30000 && !$(".lk")) unlock();
+      });
+      document.addEventListener("click", (e) => {
+        const b = e.target.closest && e.target.closest("[data-y]"); if (!b) return;
+        const [a, id] = b.dataset.y.split(":");
+        if (a == "wal") walForm(id); else if (a == "nwal") walForm(); else if (a == "ntr") trForm(); else if (a == "tr") trForm(id);
+        else if (a == "pal") { if (id == "blue") delete S.pal; else S.pal = id; save(); applyPal(); render(); }
+        else if (a == "fxs") { const fx = {}; ["USD", "EUR", "RUB"].forEach((k) => { const v = +$("#fx" + k).value.replace(/\s/g, ""); if (v > 0) fx[k] = v; }); S.fx = fx; save(); render(); toast(t3("Saqlandi", "Сохранено", "Saved")); }
+        else if (a == "pset") setPin(); else if (a == "pchg") chgPin(); else if (a == "pdel") delPin(); else if (a == "bio") bioToggle();
+        else if (a == "filt") hfForm(); else if (a == "fclr") { hf = {}; render(); }
+      });
       const V = {
         rep: vRep,
         home: vHome,
@@ -3591,7 +3818,8 @@ Boshqa daromad¦Другой доход¦Other income`
           note: "",
         };
         let ty = x.type,
-          cat = x.cat;
+ cat = x.cat;
+ tfs = { wl: id ? wOf(x) : S.w.some((w) => w.id == S.lw) ? S.lw : S.w[0].id, cu: x.cu || "UZS" };
         const draw = () => {
           const cs = ty == "in" ? INC : EXP;
           if (!cs.includes(cat)) cat = cs[0];
@@ -3613,8 +3841,8 @@ Boshqa daromad¦Другой доход¦Other income`
             );
         };
         sheet(`<div class="tf" data-k="${ty}"><h2>${id ? "Tahrirlash" : "Yangi tranzaksiya"}</h2><div class="tg"><button data-ty="out" class="${ty == "out" ? "on" : ""}">Chiqim</button><button data-ty="in" class="${ty == "in" ? "on" : ""}">Kirim</button></div>
- <div class="amt"><input class="in" id="ta" inputmode="numeric" placeholder="0" autocomplete="off" value="${x.amt}"><span>so'm</span></div>
- <label>Kategoriya</label><div class="cg" id="tcg"></div>
+ <div class="amt"><input class="in" id="ta" inputmode="numeric" placeholder="0" autocomplete="off" value="${x.oa || x.amt}"><span id="tcl">so'm</span></div><div class="cur" id="tcu"></div><div class="mu" id="tpv" style="text-align:center;min-height:18px"></div>
+ <label>Kategoriya</label><div class="cg" id="tcg"></div><label>${t3("Hamyon", "Кошелёк", "Wallet")}</label><div class="wg" id="twg"></div>
  <div class="c2"><div><label>Sana</label><input class="in" id="td" type="date" value="${x.d}"></div><div><label>Izoh</label><input class="in" id="tn" maxlength="200" value="${esc(x.note)}"></div></div>
  <button class="btn" id="ts">Saqlash</button>${id ? '<button class="btn d" id="tx">O\'chirish</button>' : ""}</div>`);
         draw();
@@ -3628,10 +3856,15 @@ Boshqa daromad¦Другой доход¦Other income`
               draw();
             }),
         );
-        if (!id) setTimeout(() => $("#ta") && $("#ta").focus(), 280);
+        wDraw();
+ cuDraw();
+ $("#ta").addEventListener("input", cuPv);
+ if (!id) setTimeout(() => $("#ta") && $("#ta").focus(), 280);
         $("#ts").onclick = () => {
-          const amt = +$("#ta").value.replace(/\s/g, "").replace(",", "."),
-            d = $("#td").value;
+          const raw = +$("#ta").value.replace(/\s/g, "").replace(",", "."),
+ rate = tfs.cu != "UZS" && S.fx && S.fx[tfs.cu] > 0 ? S.fx[tfs.cu] : 0,
+ amt = rate ? Math.round(raw * rate) : raw,
+ d = $("#td").value;
           if (!(amt > 0)) {
             const q = $("#ta");
             q.classList.remove("shake");
@@ -3649,8 +3882,12 @@ Boshqa daromad¦Другой доход¦Other income`
             note: $("#tn").value.trim(),
             ts: x.ts || Date.now(),
             rid: x.rid,
-          };
-          if (id) S.t = S.t.map((t) => (t.id == id ? r : t));
+ w: tfs.wl,
+ cu: rate ? tfs.cu : undefined,
+ oa: rate ? raw : undefined,
+ };
+ S.lw = tfs.wl;
+ if (id) S.t = S.t.map((t) => (t.id == id ? r : t));
           else S.t.push(r);
           save();
           close();
@@ -3661,10 +3898,16 @@ Boshqa daromad¦Другой доход¦Other income`
           $("#tx").onclick = async () => {
             if (await ask("Bu yozuvni o'chirasizmi?")) {
               tomb(id);
-              S.t = S.t.filter((t) => t.id != id);
-              save();
-              close();
-              render();
+ S.t = S.t.filter((t) => t.id != id);
+ save();
+ close();
+ render();
+ undoBar(t3("Yozuv o'chirildi", "Запись удалена", "Entry deleted"), () => {
+ S.x = (S.x || []).filter((z) => z != id);
+ S.t.push(x);
+ save();
+ render();
+ });
             }
           };
       }
@@ -3859,9 +4102,10 @@ Boshqa daromad¦Другой доход¦Other income`
       load().then(() => {
         theme();
         lang0();
-        runRec();
-        render();
-        pg();
+ if (S.pin && !lock) unlock();
+ runRec();
+ render();
+ pg();
         trn(document.body);
         const askName = () => {
           if (!S.name && !S.asked && !tgUser()) {
