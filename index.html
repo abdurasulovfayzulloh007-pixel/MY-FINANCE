@@ -4277,15 +4277,29 @@ Boshqa daromad¦Другой доход¦Other income`
   document.body.append(mic);
   mic.onclick = () => {
     if (!SR) return toast(t3("Bu qurilmada ovoz tanish ishlamaydi. Brauzerda (Chrome/Safari) oching.", "Распознавание речи недоступно здесь. Откройте в браузере.", "Speech recognition isn't available here. Open in a browser."));
-    const r = new SR();
-    r.lang = { ru: "ru-RU", en: "en-US" }[S.lang] || "uz-UZ";
-    r.interimResults = false;
-    r.maxAlternatives = 1;
-    mic.classList.add("rec");
-    r.onresult = (e) => voiceAdd(e.results[0][0].transcript);
-    r.onerror = (e) => toast(e.error == "not-allowed" ? t3("Mikrofonga ruxsat bering", "Разрешите доступ к микрофону", "Allow microphone access") : t3("Ovoz tanilmadi, qayta urinib ko'ring", "Не удалось распознать, попробуйте ещё", "Couldn't recognize, try again"));
-    r.onend = () => mic.classList.remove("rec");
-    try { r.start(); } catch (_) { mic.classList.remove("rec"); }
+    if (mic.classList.contains("rec")) return;
+    const langs = S.lang == "ru" ? ["ru-RU"] : S.lang == "en" ? ["en-US"] : ["uz-UZ", "ru-RU"];
+    const run = (i) => {
+      const r = new SR();
+      let got = false, err = "";
+      r.lang = langs[i];
+      r.interimResults = false;
+      r.maxAlternatives = 1;
+      mic.classList.add("rec");
+      r.onresult = (e) => { got = true; voiceAdd(e.results[0][0].transcript); };
+      r.onerror = (e) => { err = e.error || "unknown"; };
+      r.onend = () => {
+        mic.classList.remove("rec");
+        if (got) return;
+        if ((err == "language-not-supported" || err == "service-not-allowed" || err == "network") && i + 1 < langs.length) return run(i + 1);
+        if (err == "not-allowed") return toast(t3("Mikrofon yoki Ovoz tanish (Dictation/Siri) ruxsati yo'q. Sozlamalardan yoqing.", "Нет доступа к микрофону или диктовке. Включите в настройках.", "Microphone or Dictation access is off. Enable it in Settings."));
+        if (err == "service-not-allowed") return toast(t3("Telefonda Diktovka/Siri o'chiq: Sozlamalar → Klaviatura → Diktovka", "Диктовка/Siri выключены: Настройки → Клавиатура → Диктовка", "Dictation/Siri is off: Settings → Keyboard → Dictation"));
+        if (!err || err == "no-speech") return toast(t3("Ovoz eshitilmadi. Tugmani bosib, darrov gapiring.", "Голос не слышно. Нажмите и сразу говорите.", "Didn't hear anything. Tap and speak right away."));
+        toast(t3("Ovoz tanilmadi", "Не удалось распознать", "Couldn't recognize") + " (" + err + ")");
+      };
+      try { r.start(); } catch (_) { mic.classList.remove("rec"); toast(t3("Mikrofonni ishga tushirib bo'lmadi", "Не удалось запустить микрофон", "Couldn't start the microphone")); }
+    };
+    run(0);
   };
   let ly2 = 0;
   addEventListener("scroll", () => { const y = scrollY; mic.classList.toggle("hide", y > ly2 && y > 80); ly2 = y; }, { passive: true });
